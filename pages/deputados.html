@@ -28,7 +28,7 @@
         </div>
         
         <nav class="flex-1 px-4 mt-6 space-y-2">
-            <a href="../index.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 transition-colors hover:bg-gray-800 hover:text-white">
+            <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 transition-colors hover:bg-gray-800 hover:text-white">
                 <i class="fa-solid fa-chart-line"></i>
                 <span class="font-medium">Dashboard</span>
             </a>
@@ -213,7 +213,17 @@
 
     <!-- Logic and config files -->
     <script src="../assets/js/core/config.js"></script>
+    <script src="../assets/js/services/back4app.js"></script>
+    <script src="../assets/js/services/cache.js"></script>
     <script src="../assets/js/services/camaraApi.js"></script>
-    <script src="../assets/js/pages/deputados.js"></script>
+    
+    <script src="../assets/js/models/DeputadoModel.js"></script>
+    <script src="../assets/js/models/MonitoramentoModel.js"></script>
+    <script src="../assets/js/models/AvaliacaoModel.js"></script>
+    
+    <script src="../assets/js/core/app.js"></script>
+    
+    <script src="../assets/js/views/DeputadosView.js"></script>
+    <script src="../assets/js/controllers/DeputadosController.js"></script>
 </body>
 </html>
