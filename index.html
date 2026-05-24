@@ -111,6 +111,30 @@
         </div>
     </div>
 
+    <!-- Modal Avaliação -->
+    <div id="avaliacao-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-96 max-w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">Avaliar Deputado</h3>
+                <button id="close-avaliacao-modal" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <p id="avaliacao-deputado-nome" class="text-center font-medium text-gray-700 mb-6 text-lg"></p>
+
+            <div class="flex justify-center gap-2 mb-6" id="estrelas-container">
+                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="1"><i class="fa-solid fa-star"></i></button>
+                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="2"><i class="fa-solid fa-star"></i></button>
+                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="3"><i class="fa-solid fa-star"></i></button>
+                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="4"><i class="fa-solid fa-star"></i></button>
+                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="5"><i class="fa-solid fa-star"></i></button>
+            </div>
+            
+            <p id="avaliacao-nota-selecionada" class="text-center text-sm text-gray-500 mb-4 h-5"></p>
+
+            <button type="button" id="btn-confirmar-avaliacao" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold transition-colors">Confirmar Avaliação</button>
+        </div>
+    </div>
+
     <!-- Nosso Motor Lógico e Variáveis de Ambiente -->
     <script src=".env"></script>
     <script src="js/app.js"></script>

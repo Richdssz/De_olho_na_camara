@@ -189,18 +189,92 @@ async function adicionarAoRadar(deputadoId, nomeDeputado) {
     }
 }
 
-/**
- * STUB: Abrir Modal de Avaliação
- * A lógica do Parse SDK (CRUD da classe Avaliacao) entrará aqui no próximo passo.
- */
+// ==========================================
+// AVALIAÇÃO DE DEPUTADOS (CRUD Parse)
+// ==========================================
+
+const avaliacaoModal = document.getElementById('avaliacao-modal');
+const closeAvaliacaoModal = document.getElementById('close-avaliacao-modal');
+const btnConfirmarAvaliacao = document.getElementById('btn-confirmar-avaliacao');
+const avaliacaoDeputadoNome = document.getElementById('avaliacao-deputado-nome');
+const estrelas = document.querySelectorAll('.estrela-btn');
+const textoNota = document.getElementById('avaliacao-nota-selecionada');
+
+let avaliacaoAtual = { deputadoId: null, nomeDeputado: null, nota: 0 };
+
 function abrirModalAvaliacao(deputadoId, nomeDeputado) {
-    console.log(`⭐ Abrir avaliação para ${nomeDeputado} (ID: ${deputadoId})`);
-    
     const currentUser = Parse.User.current();
     if (!currentUser) {
         alert("Você precisa fazer login para avaliar um deputado!");
         return;
     }
     
-    alert(`O modal de avaliação para ${nomeDeputado} será implementado na próxima fase!\n\nAqui faremos o CREATE/UPDATE na classe Avaliacao no Back4App.`);
+    avaliacaoAtual = { deputadoId, nomeDeputado, nota: 0 };
+    if (avaliacaoDeputadoNome) avaliacaoDeputadoNome.textContent = nomeDeputado;
+    if (textoNota) textoNota.textContent = "Selecione uma nota";
+    atualizarEstrelas(0);
+    
+    if (avaliacaoModal) avaliacaoModal.classList.remove('hidden');
+}
+
+if(closeAvaliacaoModal) closeAvaliacaoModal.addEventListener('click', () => {
+    if (avaliacaoModal) avaliacaoModal.classList.add('hidden');
+});
+
+estrelas.forEach(estrela => {
+    estrela.addEventListener('click', (e) => {
+        const nota = parseInt(e.currentTarget.getAttribute('data-nota'));
+        avaliacaoAtual.nota = nota;
+        atualizarEstrelas(nota);
+        if (textoNota) textoNota.textContent = `Nota: ${nota} estrela(s)`;
+    });
+});
+
+function atualizarEstrelas(nota) {
+    estrelas.forEach(estrela => {
+        const valor = parseInt(estrela.getAttribute('data-nota'));
+        if (valor <= nota) {
+            estrela.classList.remove('text-gray-300');
+            estrela.classList.add('text-yellow-400');
+        } else {
+            estrela.classList.add('text-gray-300');
+            estrela.classList.remove('text-yellow-400');
+        }
+    });
+}
+
+if(btnConfirmarAvaliacao) btnConfirmarAvaliacao.addEventListener('click', salvarAvaliacao);
+
+async function salvarAvaliacao() {
+    if (avaliacaoAtual.nota === 0) {
+        alert("Selecione uma nota de 1 a 5 antes de confirmar!");
+        return;
+    }
+    
+    const currentUser = Parse.User.current();
+    if (!currentUser) return;
+    
+    try {
+        console.log(`⏳ Salvando avaliação para ${avaliacaoAtual.nomeDeputado}...`);
+        
+        // Mágica do Parse: Instancia a classe, se não existir no banco, ele cria sozinho no .save()
+        const Avaliacao = Parse.Object.extend("Avaliacao");
+        const novaAvaliacao = new Avaliacao();
+        
+        novaAvaliacao.set("usuario", currentUser);
+        novaAvaliacao.set("deputadoId", avaliacaoAtual.deputadoId);
+        novaAvaliacao.set("nomeDeputado", avaliacaoAtual.nomeDeputado);
+        novaAvaliacao.set("nota", avaliacaoAtual.nota);
+        
+        await novaAvaliacao.save();
+        
+        console.log('✅ Avaliação salva com sucesso e tabela criada no Back4App se não existia!');
+        alert(`Avaliação registrada com sucesso!\n\n(A tabela Avaliacao foi criada/atualizada automaticamente no seu Back4App)`);
+        
+        if (avaliacaoModal) avaliacaoModal.classList.add('hidden');
+        
+    } catch (error) {
+        console.error('❌ Falha ao salvar avaliação: ', error.message);
+        alert('Erro ao salvar avaliação. Tente novamente.');
+    }
 }
