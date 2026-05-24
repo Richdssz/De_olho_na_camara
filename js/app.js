@@ -172,11 +172,13 @@ async function renderizarGridDeputados() {
         card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col';
         
         card.innerHTML = `
-            <div class="relative pt-[120%] bg-gray-200">
-                <img src="${deputado.urlFoto}" alt="Foto de ${deputado.nome}" class="absolute inset-0 w-full h-full object-cover object-top" onerror="this.src='https://via.placeholder.com/150?text=Sem+Foto'">
-            </div>
+            <a href="deputado-perfil.html?id=${deputado.id}" class="relative pt-[120%] bg-gray-200 block cursor-pointer group overflow-hidden">
+                <img src="${deputado.urlFoto}" alt="Foto de ${deputado.nome}" class="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://via.placeholder.com/150?text=Sem+Foto'">
+            </a>
             <div class="p-5 flex flex-col flex-1">
-                <h4 class="font-bold text-lg text-gray-900 mb-1 leading-tight">${deputado.nome}</h4>
+                <h4 class="font-bold text-lg text-gray-900 mb-1 leading-tight">
+                    <a href="deputado-perfil.html?id=${deputado.id}" class="hover:text-blue-600 transition-colors">${deputado.nome}</a>
+                </h4>
                 <p class="text-sm font-medium text-blue-600 mb-4">${deputado.siglaPartido} - ${deputado.siglaUf}</p>
                 
                 <div class="mt-auto grid grid-cols-2 gap-2">
