@@ -213,8 +213,8 @@ de-olho-na-camara/
 ### Passo 1 — Clone o repositório
 
 ```bash
-git clone https://github.com/seu-usuario/raio-do-plenario.git
-cd raio-do-plenario
+git clone https://github.com/Richdssz/De_olho_na_camara.git
+cd De_olho_na_camara
 ```
 
 ### Passo 2 — Configure o Back4App
