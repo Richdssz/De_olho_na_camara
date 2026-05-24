@@ -157,7 +157,7 @@ class PerfilDeputadoView {
                     <i class="${icon}"></i>
                 </div>
                 <div>
-                    <h4 class="font-extrabold text-base uppercase tracking-wider">⚠️ Comportamentos de Risco / Anomalia Detectada</h4>
+                    <h4 class="font-extrabold text-base uppercase tracking-wider">Comportamentos de Risco / Anomalia Detectada</h4>
                     <p class="text-sm opacity-90 mb-2">Este deputado apresenta métricas de atuação atípicas em relação aos padrões médios legislativos:</p>
                     <div class="space-y-1">${anomaliasHTML}</div>
                 </div>
@@ -373,12 +373,227 @@ class PerfilDeputadoView {
     atualizarBotaoRadar(btn, isMonitored) {
         if (!btn) return;
         if (isMonitored) {
-            btn.innerHTML = `<span>✔️</span> Acompanhando no Radar`;
-            btn.className = "flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-6 rounded-lg text-sm font-semibold transition-all shadow-sm";
+            btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Acompanhando no Radar`;
+            btn.className = "flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white py-2.5 px-6 rounded-lg text-sm font-semibold transition-all shadow-sm";
         } else {
-            btn.innerHTML = `<span>👁️</span> Acompanhar no Radar`;
+            btn.innerHTML = `<i class="fa-solid fa-eye"></i> Acompanhar no Radar`;
             btn.className = "flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-6 rounded-lg text-sm font-semibold transition-all";
         }
+    }
+
+    onSalvarAvaliacaoClick(callback) {
+        const btn = document.getElementById('btn-salvar-avaliacao-perfil');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                const comentario = document.getElementById('perfil-comentario').value;
+                callback(comentario);
+            });
+        }
+    }
+
+    onEstrelaClick(callback) {
+        const estrelas = document.querySelectorAll('.estrela-perfil-btn');
+        estrelas.forEach(estrela => {
+            estrela.addEventListener('click', (e) => {
+                const nota = parseInt(e.currentTarget.getAttribute('data-nota'));
+                callback(nota);
+            });
+        });
+    }
+
+    atualizarEstrelasPerfil(nota) {
+        const estrelas = document.querySelectorAll('.estrela-perfil-btn');
+        estrelas.forEach(estrela => {
+            const valor = parseInt(estrela.getAttribute('data-nota'));
+            if (valor <= nota) {
+                estrela.classList.remove('text-gray-300');
+                estrela.classList.add('text-yellow-400');
+            } else {
+                estrela.classList.add('text-gray-300');
+                estrela.classList.remove('text-yellow-400');
+            }
+        });
+    }
+
+    mostrarErroAvaliacao(msg) {
+        const errEl = document.getElementById('perfil-avaliacao-erro');
+        if (errEl) {
+            if (msg) {
+                errEl.textContent = msg;
+                errEl.classList.remove('hidden');
+            } else {
+                errEl.classList.add('hidden');
+            }
+        }
+    }
+
+    renderizarComentarios(comentarios, media) {
+        const container = document.getElementById('comentarios-container');
+        const mediaLabel = document.getElementById('media-avaliacao-label');
+        
+        if (mediaLabel) {
+            mediaLabel.textContent = media > 0 
+                ? `Média: ${media.toFixed(1)} / 5 ★` 
+                : "Sem avaliações";
+        }
+
+        if (!container) return;
+
+        if (comentarios.length === 0) {
+            container.innerHTML = `<p class="text-gray-500 text-center py-10 font-medium">Nenhuma avaliação enviada para este deputado.</p>`;
+            return;
+        }
+
+        container.innerHTML = '';
+        comentarios.forEach(c => {
+            const dateStr = c.createdAt 
+                ? new Date(c.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : '-';
+            
+            const estrelasHTML = Array(5).fill(0).map((_, i) => `
+                <i class="fa-solid fa-star text-sm ${i < c.nota ? 'text-yellow-400' : 'text-gray-200'}"></i>
+            `).join('');
+
+            const div = document.createElement('div');
+            div.className = 'p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-2';
+            div.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-gray-800 text-sm">${c.username}</span>
+                    <span class="text-xs text-gray-400 font-medium">${dateStr}</span>
+                </div>
+                <div class="flex gap-1">${estrelasHTML}</div>
+                <p class="text-sm text-gray-600 font-medium leading-relaxed break-words">${c.comentario || '<span class="italic text-gray-400">Sem comentário escrito.</span>'}</p>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    preencherMinhaAvaliacao(nota, comentario) {
+        this.atualizarEstrelasPerfil(nota);
+        const commentEl = document.getElementById('perfil-comentario');
+        if (commentEl) commentEl.value = comentario || '';
+    }
+
+    renderizarProposicoes(proposicoes, votosMap) {
+        const container = document.getElementById('proposicoes-container');
+        if (!container) return;
+
+        if (proposicoes.length === 0) {
+            container.innerHTML = `<p class="text-gray-500 col-span-full text-center py-10 font-medium">Nenhum projeto de lei recente encontrado para este deputado.</p>`;
+            return;
+        }
+
+        // Mostra no máximo 6 proposições recentes
+        const propToShow = proposicoes.slice(0, 6);
+
+        container.innerHTML = '';
+        propToShow.forEach(p => {
+            const dateStr = p.dataEnvio || p.dataApresentacao || p.data || '';
+            const dataFormatada = dateStr 
+                ? new Date(dateStr).toLocaleDateString('pt-BR')
+                : '-';
+
+            const votoInfo = votosMap[p.id] || { apoios: 0, rejeicoes: 0, meuVoto: null };
+            const apoios = votoInfo.apoios;
+            const rejeicoes = votoInfo.rejeicoes;
+            const meuVoto = votoInfo.meuVoto;
+
+            let btnApoiarClass = 'bg-white text-green-700 border-green-200 hover:bg-green-50';
+            if (meuVoto === "Apoio") {
+                btnApoiarClass = 'bg-green-600 text-white border-green-600 hover:bg-green-700';
+            }
+
+            let btnRejeitarClass = 'bg-white text-red-700 border-red-200 hover:bg-red-50';
+            if (meuVoto === "Rejeito") {
+                btnRejeitarClass = 'bg-red-600 text-white border-red-600 hover:bg-red-700';
+            }
+
+            const div = document.createElement('div');
+            div.className = 'bg-gray-50 p-5 rounded-2xl border border-gray-100 flex flex-col justify-between hover:shadow-md transition';
+            div.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="px-3 py-1 bg-teal-50 text-teal-700 rounded-full text-xs font-bold border border-teal-100">
+                            ${p.siglaTipo} ${p.numero}/${p.ano}
+                        </span>
+                        <span class="text-xs text-gray-400 font-semibold">${dataFormatada}</span>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-900 mb-3 line-clamp-3 leading-relaxed" title="${p.ementa}">
+                        ${p.ementa}
+                    </p>
+                </div>
+                
+                <!-- Termômetro de Votos -->
+                <div class="border-t border-gray-200/60 pt-4 mt-2 flex items-center justify-between">
+                    <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Termômetro</span>
+                    <div class="flex gap-2" id="votos-wrapper-${p.id}">
+                        <!-- Botão Apoiar -->
+                        <button class="btn-votar flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${btnApoiarClass}" data-id="${p.id}" data-voto="Apoio">
+                            <i class="fa-solid fa-thumbs-up"></i> Apoiar <span class="bg-white/80 text-gray-700 px-2 py-0.5 rounded-full text-[10px] ml-0.5" id="apoio-count-${p.id}">${apoios}</span>
+                        </button>
+                        <!-- Botão Rejeitar -->
+                        <button class="btn-votar flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${btnRejeitarClass}" data-id="${p.id}" data-voto="Rejeito">
+                            <i class="fa-solid fa-thumbs-down"></i> Rejeitar <span class="bg-white/80 text-gray-700 px-2 py-0.5 rounded-full text-[10px] ml-0.5" id="rejeito-count-${p.id}">${rejeicoes}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        // Event listener setup
+        if (this._onVotoCallback) {
+            const botoesVoto = container.querySelectorAll('.btn-votar');
+            botoesVoto.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                    const voto = e.currentTarget.getAttribute('data-voto');
+                    this._onVotoCallback(id, voto, e.currentTarget);
+                });
+            });
+        }
+    }
+
+    onVotarProposicaoClick(callback) {
+        this._onVotoCallback = callback;
+    }
+
+    atualizarVotosCard(proposicaoId, apoios, rejeicoes, meuVoto) {
+        const wrapper = document.getElementById(`votos-wrapper-${proposicaoId}`);
+        if (!wrapper) return;
+
+        let btnApoiarClass = 'bg-white text-green-700 border-green-200 hover:bg-green-50';
+        if (meuVoto === "Apoio") {
+            btnApoiarClass = 'bg-green-600 text-white border-green-600 hover:bg-green-700';
+        }
+
+        let btnRejeitarClass = 'bg-white text-red-700 border-red-200 hover:bg-red-50';
+        if (meuVoto === "Rejeito") {
+            btnRejeitarClass = 'bg-red-600 text-white border-red-600 hover:bg-red-700';
+        }
+
+        wrapper.innerHTML = `
+            <!-- Botão Apoiar -->
+            <button class="btn-votar flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${btnApoiarClass}" data-id="${proposicaoId}" data-voto="Apoio">
+                <i class="fa-solid fa-thumbs-up"></i> Apoiar <span class="bg-white/80 text-gray-700 px-2 py-0.5 rounded-full text-[10px] ml-0.5" id="apoio-count-${proposicaoId}">${apoios}</span>
+            </button>
+            <!-- Botão Rejeitar -->
+            <button class="btn-votar flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${btnRejeitarClass}" data-id="${proposicaoId}" data-voto="Rejeito">
+                <i class="fa-solid fa-thumbs-down"></i> Rejeitar <span class="bg-white/80 text-gray-700 px-2 py-0.5 rounded-full text-[10px] ml-0.5" id="rejeito-count-${proposicaoId}">${rejeicoes}</span>
+            </button>
+        `;
+
+        // Re-bind listeners
+        const buttons = wrapper.querySelectorAll('.btn-votar');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                const voto = e.currentTarget.getAttribute('data-voto');
+                if (this._onVotoCallback) {
+                    this._onVotoCallback(id, voto, e.currentTarget);
+                }
+            });
+        });
     }
 }
 

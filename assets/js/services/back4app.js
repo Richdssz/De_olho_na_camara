@@ -44,20 +44,48 @@ class Back4AppService {
     // ==========================================
     
     /**
+     * Auxiliar para tratar erros do Parse, como token de sessão inválido (código 209).
+     */
+    static async _handleParseError(error) {
+        if (error && error.code === 209) {
+            console.warn("⚠️ Sessão inválida do Parse (Token expirado/inválido). Deslogando usuário local...");
+            try {
+                await Parse.User.logOut();
+            } catch (e) {
+                console.error("Erro ao efetuar logOut após token inválido:", e);
+            }
+            if (window.updateAuthUI) {
+                window.updateAuthUI();
+            } else if (typeof updateAuthUI === 'function') {
+                updateAuthUI();
+            }
+            // Recarrega a página ou a UI ativa para sincronizar
+            if (window.activeController && typeof window.activeController.recarregarGrid === 'function') {
+                window.activeController.recarregarGrid();
+            }
+        }
+        throw error;
+    }
+
+    /**
      * Busca um único registro de uma classe baseado em uma chave/valor e usuário logado.
      */
     static async getFirst(className, conditions = {}) {
         const currentUser = this.getCurrentUser();
         if (!currentUser) throw new Error("Usuário não logado");
 
-        const query = new Parse.Query(className);
-        query.equalTo("usuario", currentUser);
-        
-        for (const [key, value] of Object.entries(conditions)) {
-            query.equalTo(key, value);
+        try {
+            const query = new Parse.Query(className);
+            query.equalTo("usuario", currentUser);
+            
+            for (const [key, value] of Object.entries(conditions)) {
+                query.equalTo(key, value);
+            }
+            
+            return await query.first();
+        } catch (error) {
+            return await this._handleParseError(error);
         }
-        
-        return await query.first();
     }
 
     /**
@@ -67,29 +95,41 @@ class Back4AppService {
         const currentUser = this.getCurrentUser();
         if (!currentUser) throw new Error("Usuário não logado");
 
-        const query = new Parse.Query(className);
-        query.equalTo("usuario", currentUser);
-        
-        for (const [key, value] of Object.entries(conditions)) {
-            query.equalTo(key, value);
+        try {
+            const query = new Parse.Query(className);
+            query.equalTo("usuario", currentUser);
+            
+            for (const [key, value] of Object.entries(conditions)) {
+                query.equalTo(key, value);
+            }
+            
+            query.limit(limit);
+            return await query.find();
+        } catch (error) {
+            return await this._handleParseError(error);
         }
-        
-        query.limit(limit);
-        return await query.find();
     }
 
     /**
      * Salva um objeto Parse (novo ou existente).
      */
     static async saveObj(parseObject) {
-        return await parseObject.save();
+        try {
+            return await parseObject.save();
+        } catch (error) {
+            return await this._handleParseError(error);
+        }
     }
 
     /**
      * Deleta um objeto Parse.
      */
     static async deleteObj(parseObject) {
-        return await parseObject.destroy();
+        try {
+            return await parseObject.destroy();
+        } catch (error) {
+            return await this._handleParseError(error);
+        }
     }
 
     /**
@@ -98,6 +138,27 @@ class Back4AppService {
     static createObj(className) {
         const ParseClass = Parse.Object.extend(className);
         return new ParseClass();
+    }
+
+    /**
+     * Busca todos os registros de uma classe de forma pública (sem restrição ao usuário logado).
+     */
+    static async getPublicAll(className, conditions = {}, limit = 1000) {
+        try {
+            const query = new Parse.Query(className);
+            
+            for (const [key, value] of Object.entries(conditions)) {
+                query.equalTo(key, value);
+            }
+            
+            query.limit(limit);
+            query.include("usuario");
+            query.descending("createdAt");
+            
+            return await query.find();
+        } catch (error) {
+            return await this._handleParseError(error);
+        }
     }
 }
 

@@ -46,7 +46,7 @@ class DeputadosView {
 
     mostrarLoader() {
         if (!this.grid) return;
-        this.grid.innerHTML = '<p class="text-gray-500 col-span-full text-center py-20 font-medium"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-500 mr-2"></i>Carregando lista de deputados...</p>';
+        this.grid.innerHTML = '<p class="text-gray-500 col-span-full text-center py-20 font-medium"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-teal-600 mr-2"></i>Carregando lista de deputados...</p>';
     }
 
     mostrarErro() {
@@ -84,9 +84,9 @@ class DeputadosView {
 
         deputados.forEach(deputado => {
             const isMonitored = monitoradosIds.includes(deputado.id);
-            const btnText = isMonitored ? "<span>✔️</span> Acompanhando" : "<span>👁️</span> Acompanhar";
+            const btnText = isMonitored ? "<i class='fa-solid fa-circle-check'></i> Acompanhando" : "<i class='fa-solid fa-eye'></i> Acompanhar";
             const btnClass = isMonitored 
-                ? "flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors" 
+                ? "flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors" 
                 : "flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors";
 
             const card = document.createElement('div');
@@ -98,16 +98,16 @@ class DeputadosView {
                 </a>
                 <div class="p-5 flex flex-col flex-1">
                     <h4 class="font-bold text-lg text-gray-900 mb-1 leading-tight">
-                        <a href="deputado-perfil.html?id=${deputado.id}" class="hover:text-blue-600 transition-colors">${deputado.nome}</a>
+                        <a href="deputado-perfil.html?id=${deputado.id}" class="hover:text-teal-600 transition-colors">${deputado.nome}</a>
                     </h4>
-                    <p class="text-sm font-medium text-blue-600 mb-4">${deputado.siglaPartido} - ${deputado.siglaUf}</p>
+                    <p class="text-sm font-medium text-teal-600 mb-4">${deputado.siglaPartido} - ${deputado.siglaUf}</p>
                     
                     <div class="mt-auto grid grid-cols-2 gap-2">
                         <button class="btn-radar ${btnClass}" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
                             ${btnText}
                         </button>
-                        <button class="btn-avaliar flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
-                            <span>⭐</span> Avaliar
+                        <button class="btn-avaliar flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
+                            <i class="fa-solid fa-star text-yellow-500"></i> Avaliar
                         </button>
                     </div>
                 </div>
@@ -137,10 +137,10 @@ class DeputadosView {
     atualizarBotaoRadar(btn, acao) {
         if (!btn) return;
         if (acao === 'added') {
-            btn.innerHTML = `<span>✔️</span> Acompanhando`;
-            btn.className = "btn-radar flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors";
+            btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Acompanhando`;
+            btn.className = "btn-radar flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors";
         } else {
-            btn.innerHTML = `<span>👁️</span> Acompanhar`;
+            btn.innerHTML = `<i class="fa-solid fa-eye"></i> Acompanhar`;
             btn.className = "btn-radar flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors";
         }
     }

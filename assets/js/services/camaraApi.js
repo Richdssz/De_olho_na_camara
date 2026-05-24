@@ -124,6 +124,36 @@ class CamaraApiService {
         });
         return response.dados || [];
     }
+
+    /**
+     * Busca a lista geral de partidos políticos ativos.
+     */
+    async listarPartidos(params = {}) {
+        const response = await this._fetch('/partidos', {
+            ordem: 'ASC',
+            ordenarPor: 'sigla',
+            ...params
+        });
+        return response.dados || [];
+    }
+
+    /**
+     * Busca os detalhes de um partido específico pelo seu ID.
+     */
+    async buscarPartido(id) {
+        const response = await this._fetch(`/partidos/${id}`);
+        return response.dados;
+    }
+
+    /**
+     * Busca a lista dos parlamentares de um partido durante um período.
+     */
+    async buscarMembrosPartido(id, params = {}) {
+        const response = await this._fetch(`/partidos/${id}/membros`, {
+            ...params
+        });
+        return response.dados || [];
+    }
 }
 
 // Expõe globalmente

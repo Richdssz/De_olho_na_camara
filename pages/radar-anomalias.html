@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Radar - De Olho na Câmara</title>
+    <title>Alertas de Risco - De Olho na Câmara</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Parse SDK -->
@@ -51,7 +51,7 @@
                 <i class="fa-solid fa-users text-xl"></i>
                 <span class="text-lg font-medium">Deputados</span>
             </a>
-            <a href="meu-radar.html" class="flex items-center gap-4 px-5 py-3 bg-teal-800 rounded-2xl text-green-400 transition-colors">
+            <a href="meu-radar.html" class="flex items-center gap-4 px-5 py-3 rounded-2xl text-gray-400 transition-colors hover:bg-teal-800 hover:text-white">
                 <i class="fa-solid fa-satellite-dish text-xl"></i>
                 <span class="text-lg font-medium">Meu Radar</span>
             </a>
@@ -59,7 +59,7 @@
                 <i class="fa-solid fa-handshake text-xl"></i>
                 <span class="text-lg font-medium">Partidos</span>
             </a>
-            <a href="radar-anomalias.html" class="flex items-center gap-4 px-5 py-3 rounded-2xl text-gray-400 transition-colors hover:bg-teal-800 hover:text-white">
+            <a href="radar-anomalias.html" class="flex items-center gap-4 px-5 py-3 bg-teal-800 rounded-2xl text-green-400 transition-colors animate-pulse">
                 <i class="fa-solid fa-triangle-exclamation text-xl"></i>
                 <span class="text-lg font-medium">Alertas de Risco</span>
             </a>
@@ -81,8 +81,8 @@
         <!-- Header -->
         <header class="bg-white shadow-sm border-b border-gray-100 py-4 px-8 flex justify-between items-center shrink-0">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900">Seu Radar</h2>
-                <p class="text-sm text-gray-500">Deputados que você está acompanhando de perto</p>
+                <h2 class="text-2xl font-bold text-gray-900">Alertas de Risco</h2>
+                <p class="text-sm text-gray-500">Ranking de conformidade e cruzamento inteligente de gastos vs presença em plenário</p>
             </div>
 
             <!-- Auth Buttons -->
@@ -93,19 +93,43 @@
             </div>
         </header>
 
+        <!-- Filters Section -->
+        <section class="bg-white border-b border-gray-150 py-4 px-8 shrink-0 flex flex-wrap gap-4 items-center">
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Filtrar por Anomalia</label>
+                <select id="filtro-anomalia-categoria" class="px-4 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-teal-500">
+                    <option value="">Todas as Anomalias</option>
+                    <option value="alto_gasto_baixa_presenca">Alto Gasto + Baixa Presença</option>
+                    <option value="gasto_critico_ceap">Gasto Crítico CEAP</option>
+                    <option value="ausencia_critica">Ausência Crítica Plenário</option>
+                    <option value="coesao_baixa">Baixa Coesão Partidária</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Filtrar por Severidade</label>
+                <select id="filtro-anomalia-severidade" class="px-4 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-teal-500">
+                    <option value="">Todas as Severidades</option>
+                    <option value="critico">Crítico (Vermelho)</option>
+                    <option value="alerta">Alerta (Laranja)</option>
+                    <option value="atencao">Atenção (Amarelo)</option>
+                </select>
+            </div>
+        </section>
+
         <!-- Content Area (Scrollable) -->
         <div class="flex-1 overflow-y-auto p-8 relative">
             <div class="max-w-7xl mx-auto">
-                
-                <!-- Grade de Deputados Monitorados -->
-                <div id="radar-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <!-- Cards de deputados injetados aqui -->
+                <div id="radar-anomalias-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <p class="text-gray-500 col-span-full text-center py-20 font-medium">
+                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-teal-600 mb-4 block"></i>
+                        Escaneando mandatos parlamentares em busca de anomalias...
+                    </p>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Modal Base (Importado via app.js) -->
+    <!-- Login/Register Modal -->
     <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center">
@@ -144,7 +168,7 @@
     
     <script src="../assets/js/core/app.js"></script>
     
-    <script src="../assets/js/views/MeuRadarView.js"></script>
-    <script src="../assets/js/controllers/MeuRadarController.js"></script>
+    <script src="../assets/js/views/RadarAnomaliasView.js"></script>
+    <script src="../assets/js/controllers/RadarAnomaliasController.js"></script>
 </body>
 </html>

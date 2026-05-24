@@ -58,6 +58,11 @@
                 <button id="btn-exportar" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg text-sm transition-colors">
                     <i class="fa-solid fa-print"></i> Exportar
                 </button>
+                
+                <!-- Auth Buttons -->
+                <span id="user-display" class="hidden text-gray-700 font-medium text-sm"></span>
+                <button id="btn-login-modal" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full font-medium text-sm transition-colors">Entrar / Cadastrar</button>
+                <button id="btn-logout" class="hidden text-gray-500 hover:text-red-500 font-medium text-sm transition-colors">Sair</button>
             </div>
         </div>
     </header>
@@ -117,7 +122,7 @@
                     <!-- Botão Radar -->
                     <div class="mt-6 flex gap-3 no-print">
                         <button id="btn-radar-perfil" class="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-6 rounded-lg text-sm font-semibold transition-all">
-                            <span>👁️</span> Acompanhar no Radar
+                            <i class="fa-solid fa-eye"></i> Acompanhar no Radar
                         </button>
                     </div>
                 </div>
@@ -244,8 +249,95 @@
                 </div>
             </div>
 
+            <!-- Seção de Projetos de Lei e Termômetro (Votações da Comunidade) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 print-card">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Proposições & Termômetro de Leis</h3>
+                        <p class="text-sm text-gray-500">Projetos de lei de autoria do parlamentar e a opinião dos cidadãos</p>
+                    </div>
+                </div>
+                <!-- Container das proposições -->
+                <div id="proposicoes-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <p class="text-gray-500 col-span-full text-center py-10 font-medium">Carregando proposições...</p>
+                </div>
+            </div>
+
+            <!-- Seção de Avaliação Cidadã (Voz do Cidadão) -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 print-card no-print">
+                <!-- Formulário de Avaliação (Esquerda) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-2">Sua Avaliação</h3>
+                        <p class="text-sm text-gray-500 mb-4">Deixe sua nota e opinião sobre a atuação deste deputado.</p>
+                        
+                        <!-- Estrelas Interativas -->
+                        <div class="flex gap-2 mb-4" id="perfil-estrelas-container">
+                            <button class="estrela-perfil-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="1"><i class="fa-solid fa-star"></i></button>
+                            <button class="estrela-perfil-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="2"><i class="fa-solid fa-star"></i></button>
+                            <button class="estrela-perfil-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="3"><i class="fa-solid fa-star"></i></button>
+                            <button class="estrela-perfil-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="4"><i class="fa-solid fa-star"></i></button>
+                            <button class="estrela-perfil-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="5"><i class="fa-solid fa-star"></i></button>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Comentário</label>
+                            <textarea id="perfil-comentario" rows="4" class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all resize-none" placeholder="Escreva sua opinião..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div id="perfil-avaliacao-erro" class="hidden text-red-500 text-sm font-medium mb-3"></div>
+                        <button id="btn-salvar-avaliacao-perfil" class="w-full bg-teal-700 hover:bg-teal-800 text-white py-3 rounded-2xl font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                            Enviar Avaliação
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Comentários / Avaliações dos Cidadãos (Direita) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2 flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">Voz do Cidadão</h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100" id="media-avaliacao-label">Média: - / 5</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Container dos Comentários -->
+                    <div id="comentarios-container" class="space-y-4 max-h-[350px] overflow-y-auto pr-2 flex-1">
+                        <!-- Comentários injetados via JS -->
+                        <p class="text-gray-500 text-center py-10 font-medium">Nenhuma avaliação enviada para este deputado.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
+
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-96 max-w-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">Acesso</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="auth-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email / Usuário</label>
+                    <input type="text" id="auth-email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="auth-password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all">
+                </div>
+                <div id="auth-error" class="hidden text-red-500 text-sm font-medium"></div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" id="btn-login" class="flex-1 bg-teal-700 hover:bg-teal-800 text-white py-3 rounded-2xl font-medium transition-colors">Login</button>
+                    <button type="button" id="btn-signup" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-2xl font-medium transition-colors">Criar Conta</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="../assets/js/core/config.js"></script>
     <script src="../assets/js/services/back4app.js"></script>
@@ -255,6 +347,7 @@
     
     <script src="../assets/js/models/DeputadoModel.js"></script>
     <script src="../assets/js/models/MonitoramentoModel.js"></script>
+    <script src="../assets/js/models/TermometroModel.js"></script>
     
     <script src="../assets/js/core/app.js"></script>
     

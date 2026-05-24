@@ -46,21 +46,21 @@ class DashboardView {
 
         deputados.forEach(deputado => {
             const isMonitored = monitoradosIds.includes(deputado.id);
-            const btnText = isMonitored ? "<span>✔️</span> Acompanhando" : "<span>👁️</span> Acompanhar";
+            const btnText = isMonitored ? "<i class='fa-solid fa-circle-check'></i> Acompanhando" : "<i class='fa-solid fa-eye'></i> Acompanhar";
             const btnClass = isMonitored 
-                ? "flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors" 
+                ? "flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors" 
                 : "flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors";
 
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col';
             
             card.innerHTML = `
-                <a href="pages/deputado-perfil.html?id=${deputado.id}" class="relative pt-[120%] bg-gray-200 block cursor-pointer group overflow-hidden">
+                <a href="deputado-perfil.html?id=${deputado.id}" class="relative pt-[120%] bg-gray-200 block cursor-pointer group overflow-hidden">
                     <img src="${deputado.urlFoto}" alt="Foto de ${deputado.nome}" class="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300" onerror="this.src='https://via.placeholder.com/150?text=Sem+Foto'">
                 </a>
                 <div class="p-5 flex flex-col flex-1">
                     <h4 class="font-bold text-lg text-gray-900 mb-1 leading-tight">
-                        <a href="pages/deputado-perfil.html?id=${deputado.id}" class="hover:text-blue-600 transition-colors">${deputado.nome}</a>
+                        <a href="deputado-perfil.html?id=${deputado.id}" class="hover:text-blue-600 transition-colors">${deputado.nome}</a>
                     </h4>
                     <p class="text-sm font-medium text-blue-600 mb-4">${deputado.siglaPartido} - ${deputado.siglaUf}</p>
                     
@@ -68,8 +68,8 @@ class DashboardView {
                         <button id="btn-radar-${deputado.id}" class="btn-radar ${btnClass}" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
                             ${btnText}
                         </button>
-                        <button class="btn-avaliar flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
-                            <span>⭐</span> Avaliar
+                        <button class="btn-avaliar flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
+                            <i class="fa-solid fa-star text-yellow-500"></i> Avaliar
                         </button>
                     </div>
                 </div>
@@ -105,10 +105,10 @@ class DashboardView {
     atualizarBotaoRadar(btn, acao) {
         if (!btn) return;
         if (acao === 'added') {
-            btn.innerHTML = `<span>✔️</span> Acompanhando`;
-            btn.className = "btn-radar flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors";
+            btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Acompanhando`;
+            btn.className = "btn-radar flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors";
         } else {
-            btn.innerHTML = `<span>👁️</span> Acompanhar`;
+            btn.innerHTML = `<i class="fa-solid fa-eye"></i> Acompanhar`;
             btn.className = "btn-radar flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors";
         }
     }

@@ -69,6 +69,30 @@ class AvaliacaoModel {
             return this._formatResponse(false, null, 'db', error.message);
         }
     }
+
+    /**
+     * Busca todas as avaliações públicas de um deputado específico.
+     * @param {number} deputadoId 
+     * @returns {Promise<Object>}
+     */
+    static async listarPorDeputado(deputadoId) {
+        try {
+            const results = await window.Back4AppService.getPublicAll("Avaliacao", { deputadoId });
+            const data = results.map(r => {
+                const userObj = r.get("usuario");
+                return {
+                    id: r.id,
+                    username: userObj ? userObj.get("username") : "Cidadão Anônimo",
+                    nota: r.get("nota") || 0,
+                    comentario: r.get("comentario") || "",
+                    createdAt: r.createdAt
+                };
+            });
+            return this._formatResponse(true, data, 'db');
+        } catch (error) {
+            return this._formatResponse(false, [], 'db', error.message);
+        }
+    }
 }
 
 window.AvaliacaoModel = AvaliacaoModel;

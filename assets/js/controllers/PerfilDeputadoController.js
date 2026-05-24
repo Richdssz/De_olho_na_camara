@@ -6,6 +6,7 @@ class PerfilDeputadoController {
         this.view = new window.PerfilDeputadoView();
         this.deputadoIdGlobal = null;
         this.deputadoNomeGlobal = "";
+        this.notaSelecionada = 0;
     }
 
     async init() {
@@ -19,8 +20,14 @@ class PerfilDeputadoController {
 
         this.deputadoIdGlobal = parseInt(deputadoId);
 
+        window.activeController = this;
+
         this.view.onAcompanharClick(this.handleAlternarRadar.bind(this));
         this.view.onExportarClick(() => window.print());
+        
+        this.view.onEstrelaClick(this.handleEstrelaClick.bind(this));
+        this.view.onSalvarAvaliacaoClick(this.handleSalvarAvaliacao.bind(this));
+        this.view.onVotarProposicaoClick(this.handleVotarProposicao.bind(this));
 
         await this.carregarDadosDeputado(this.deputadoIdGlobal);
     }
@@ -98,7 +105,21 @@ class PerfilDeputadoController {
             this.view.renderizarTabelaVotacoes(votosDeputadoMapeados, orientacoesMapeadas, siglaPartido);
             this.view.renderizarGraficos(despesas, eventos);
 
+            // 6. Termômetro de Leis - Carregar votos comunitários para as proposições
+            const propToShow = proposicoes.slice(0, 6);
+            const votosMap = {};
+            await Promise.all(propToShow.map(async (p) => {
+                const resp = await window.TermometroModel.buscarVotosProposicao(p.id);
+                if (resp.success) {
+                    votosMap[p.id] = resp.data;
+                }
+            }));
+            this.view.renderizarProposicoes(propToShow, votosMap);
+
             this.view.mostrarConteudo();
+
+            // Carrega a seção de avaliações da Voz do Cidadão
+            await this.carregarAvaliacoes(id);
         } catch (error) {
             console.error("Erro no perfil:", error);
             this.view.mostrarErro("Falha ao processar e carregar dados do perfil: " + error.message);
@@ -135,6 +156,151 @@ class PerfilDeputadoController {
             alert("Erro ao alterar o radar.");
         } finally {
             btn.disabled = false;
+        }
+    }
+
+    async carregarAvaliacoes(id) {
+        try {
+            // 1. Carregar avaliação do próprio usuário (se logado)
+            if (window.Back4AppService && window.Back4AppService.getCurrentUser()) {
+                const minhaResp = await window.AvaliacaoModel.buscarAvaliacao(id);
+                if (minhaResp.success && minhaResp.data) {
+                    this.notaSelecionada = minhaResp.data.nota || 0;
+                    this.view.preencherMinhaAvaliacao(this.notaSelecionada, minhaResp.data.comentario);
+                }
+            } else {
+                // Se não logado, limpa os campos de avaliação
+                this.notaSelecionada = 0;
+                this.view.preencherMinhaAvaliacao(0, "");
+            }
+
+            // 2. Carregar todas as avaliações públicas (comentários)
+            const publicResp = await window.AvaliacaoModel.listarPorDeputado(id);
+            if (publicResp.success && publicResp.data) {
+                const comentarios = publicResp.data;
+                const totalNotas = comentarios.reduce((sum, c) => sum + c.nota, 0);
+                const media = comentarios.length > 0 ? (totalNotas / comentarios.length) : 0;
+                this.view.renderizarComentarios(comentarios, media);
+            }
+        } catch (error) {
+            console.error("Erro ao carregar avaliações no PerfilDeputadoController:", error);
+        }
+    }
+
+    handleEstrelaClick(nota) {
+        this.notaSelecionada = nota;
+        this.view.atualizarEstrelasPerfil(nota);
+        this.view.mostrarErroAvaliacao(null);
+    }
+
+    async handleSalvarAvaliacao(comentario) {
+        if (!window.Back4AppService || !window.Back4AppService.getCurrentUser()) {
+            this.view.mostrarErroAvaliacao("Você precisa estar logado para avaliar.");
+            // Abre o modal de login automaticamente
+            const authModal = document.getElementById('auth-modal');
+            if (authModal) {
+                authModal.classList.remove('hidden');
+            }
+            return;
+        }
+
+        if (this.notaSelecionada === 0) {
+            this.view.mostrarErroAvaliacao("Por favor, selecione uma nota de 1 a 5 estrelas.");
+            return;
+        }
+
+        const btn = document.getElementById('btn-salvar-avaliacao-perfil');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Enviando...';
+        }
+
+        this.view.mostrarErroAvaliacao(null);
+
+        try {
+            const resp = await window.AvaliacaoModel.salvarAvaliacao(
+                this.deputadoIdGlobal,
+                this.deputadoNomeGlobal,
+                this.notaSelecionada,
+                comentario
+            );
+
+            if (resp.success) {
+                await this.carregarAvaliacoes(this.deputadoIdGlobal);
+                alert("Sua avaliação foi salva com sucesso!");
+            } else {
+                this.view.mostrarErroAvaliacao("Não foi possível salvar sua avaliação: " + (resp.error || "Erro desconhecido"));
+            }
+        } catch (error) {
+            console.error("Erro ao salvar avaliação:", error);
+            this.view.mostrarErroAvaliacao("Erro de conexão ao tentar salvar.");
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Enviar Avaliação';
+            }
+        }
+    }
+
+    async recarregarGrid() {
+        if (this.deputadoIdGlobal) {
+            await this.verificarEstadoRadar(this.deputadoIdGlobal);
+            await this.carregarAvaliacoes(this.deputadoIdGlobal);
+            // Recarrega as proposições para atualizar o voto do usuário atual
+            try {
+                const propResp = await window.camaraApi.buscarProposicoesAutor(this.deputadoIdGlobal).catch(() => []);
+                const propToShow = propResp.slice(0, 6);
+                const votosMap = {};
+                await Promise.all(propToShow.map(async (p) => {
+                    const resp = await window.TermometroModel.buscarVotosProposicao(p.id);
+                    if (resp.success) {
+                        votosMap[p.id] = resp.data;
+                    }
+                }));
+                this.view.renderizarProposicoes(propToShow, votosMap);
+            } catch (err) {
+                console.error("Erro ao recarregar proposições no login/logout:", err);
+            }
+        }
+    }
+
+    async handleVotarProposicao(proposicaoId, voto, btn) {
+        if (!window.Back4AppService || !window.Back4AppService.getCurrentUser()) {
+            // Abre o modal de login automaticamente
+            const authModal = document.getElementById('auth-modal');
+            if (authModal) {
+                authModal.classList.remove('hidden');
+            } else {
+                alert("Você precisa estar logado para opinar sobre as leis!");
+            }
+            return;
+        }
+
+        // Desabilita os botões do card temporariamente
+        const wrapper = document.getElementById(`votos-wrapper-${proposicaoId}`);
+        let originalHTML = "";
+        if (wrapper) {
+            originalHTML = wrapper.innerHTML;
+            wrapper.innerHTML = '<span class="text-xs text-gray-500 font-medium"><i class="fa-solid fa-circle-notch fa-spin"></i> Processando...</span>';
+        }
+
+        try {
+            const resp = await window.TermometroModel.votarProposicao(proposicaoId, voto);
+            if (resp.success) {
+                // Sucesso! Busca os totais atualizados para esta proposição e atualiza apenas o card
+                const totalResp = await window.TermometroModel.buscarVotosProposicao(proposicaoId);
+                if (totalResp.success) {
+                    const { apoios, rejeicoes, meuVoto } = totalResp.data;
+                    this.view.atualizarVotosCard(proposicaoId, apoios, rejeicoes, meuVoto);
+                }
+            } else {
+                alert("Erro ao computar voto: " + (resp.error || "Tente novamente."));
+                if (wrapper) wrapper.innerHTML = originalHTML;
+            }
+        } catch (error) {
+            console.error("Erro ao votar proposição:", error);
+            alert("Erro de conexão. Tente novamente.");
+            if (wrapper) wrapper.innerHTML = originalHTML;
         }
     }
 }
