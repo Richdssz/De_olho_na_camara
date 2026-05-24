@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>De olho na câmara</title>
+    <title>De Olho na Câmara - Monitoramento Cidadão</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,159 +11,156 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Parse SDK (Back4App) -->
-    <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-text {
+            background: linear-gradient(to right, #004D40, #00796B, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-bg {
+            background-image: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(0, 121, 107, 0.05), transparent 40%);
+        }
+    </style>
 </head>
-<body class="flex h-screen bg-gray-100 font-sans antialiased">
+<body class="bg-white text-gray-800 antialiased flex flex-col min-h-screen hero-bg">
     
-    <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 text-white flex flex-col shadow-2xl">
-        <div class="p-6 flex items-center gap-3">
-            <i class="fa-solid fa-eye text-2xl text-blue-400"></i>
-            <h1 class="text-xl font-bold tracking-wider">De olho na<br><span class="text-blue-400">câmara</span></h1>
+    <!-- Navbar -->
+    <nav class="w-full bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-eye text-2xl text-blue-500"></i>
+                <span class="text-xl font-bold tracking-tight text-gray-900">De Olho na <span class="text-blue-500">Câmara</span></span>
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-600">
+                <a href="#sobre" class="hover:text-blue-600 transition-colors">Sobre o Projeto</a>
+                <a href="#tecnologias" class="hover:text-blue-600 transition-colors">Tecnologias</a>
+            </div>
+            <div>
+                <a href="pages/dashboard.html" class="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                    Painel <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
         </div>
-        
-        <nav class="flex-1 px-4 mt-6 space-y-2">
-            <a href="index.html" class="flex items-center gap-3 px-4 py-3 bg-gray-800 rounded-lg text-blue-400 transition-colors hover:bg-gray-800">
-                <i class="fa-solid fa-chart-line"></i>
-                <span class="font-medium">Dashboard</span>
-            </a>
-            <a href="deputados.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 transition-colors hover:bg-gray-800 hover:text-white">
-                <i class="fa-solid fa-users"></i>
-                <span class="font-medium">Deputados</span>
-            </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 transition-colors hover:bg-gray-800 hover:text-white opacity-50 cursor-not-allowed" onclick="return false;">
-                <i class="fa-solid fa-satellite-dish"></i>
-                <span class="font-medium">Meu Radar (Em breve)</span>
-            </a>
-        </nav>
-        
-        <div class="p-4 border-t border-gray-800 text-sm text-gray-500">
-            <p>Usuário:</p>
-            <p id="session-display" class="truncate text-gray-400 font-medium text-xs"></p>
-        </div>
-    </aside>
+    </nav>
 
-    <!-- Main Content -->
-    <main class="flex-1 flex flex-col overflow-y-auto">
-        
-        <!-- Header / Hero Section -->
-        <header class="bg-white shadow-sm border-b border-gray-200 px-10 py-12 relative">
-            <!-- Auth Panel -->
-            <div class="absolute top-4 right-8 flex items-center gap-4">
-                <span id="user-display" class="hidden text-gray-700 font-medium"></span>
-                <button id="btn-login-modal" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">Entrar / Cadastrar</button>
-                <button id="btn-logout" class="hidden text-gray-500 hover:text-red-500 font-medium transition-colors">Sair</button>
+    <!-- Hero Section -->
+    <header class="flex-1 flex flex-col items-center justify-center text-center px-6 py-20 lg:py-32">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-sm font-semibold mb-8 animate-bounce">
+            <i class="fa-solid fa-bolt text-yellow-500"></i> Plataforma de Auditoria Cidadã
+        </div>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 max-w-4xl leading-tight">
+            Transparência política em <span class="gradient-text">tempo real</span>.
+        </h1>
+        <p class="text-lg md:text-xl text-gray-500 mb-12 max-w-2xl font-light">
+            Monitore gastos, frequências no plenário e nível de alinhamento partidário dos Deputados Federais através de dados abertos oficiais da Câmara.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+            <a href="pages/dashboard.html" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-xl shadow-blue-600/20 hover:-translate-y-1 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-chart-pie"></i> Acessar o Painel
+            </a>
+            <a href="#sobre" class="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-8 py-4 rounded-xl text-lg font-semibold transition-all flex items-center justify-center gap-3">
+                Saber Mais
+            </a>
+        </div>
+    </header>
+
+    <!-- Sobre o Projeto -->
+    <section id="sobre" class="py-24 bg-gray-50 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Por que o "De Olho na Câmara"?</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto">Nossa missão é democratizar o acesso à informação pública e fortalecer o controle social através da tecnologia.</p>
             </div>
             
-            <div class="max-w-4xl">
-                <h2 class="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
-                    Acompanhe como o seu dinheiro está sendo gasto no Plenário.
-                </h2>
-                <p class="text-lg text-gray-600">
-                    Dados abertos em tempo real para um controle social efetivo e transparente.
-                </p>
-            </div>
-        </header>
-
-        <!-- Dashboard Area -->
-        <section class="p-10 max-w-7xl mx-auto w-full space-y-10">
-            
-            <!-- Estatísticas do Plenário -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-1">Estatísticas do Plenário</h3>
-                <p class="text-sm text-gray-500 mb-6">Distribuição partidária dos deputados atualmente exibidos</p>
-                <div class="relative w-full max-w-md mx-auto" style="height: 300px;">
-                    <canvas id="graficoPartidos"></canvas>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Auditoria de Gastos</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Acompanhe detalhadamente como a Cota para o Exercício da Atividade Parlamentar (CEAP) está sendo utilizada mês a mês.</p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Frequência em Plenário</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Verifique a assiduidade dos deputados comparando presenças registradas em relação ao total de sessões deliberativas ocorridas.</p>
+                </div>
+                
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="w-14 h-14 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        <i class="fa-solid fa-code-merge"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Coesão Partidária</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Motor de análise que cruza votos individuais nas sessões nominais contra a orientação oficial do partido na hora do voto.</p>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div>
-                <div class="flex justify-between items-end mb-6">
-                    <div>
-                        <h3 class="text-2xl font-bold text-gray-900 tracking-tight">Deputados em Destaque</h3>
-                        <p class="text-gray-500 mt-1">Conheça, acompanhe e avalie seus representantes</p>
+    <!-- Tecnologias -->
+    <section id="tecnologias" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row gap-12 items-center">
+                <div class="flex-1">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-6">Arquitetura Moderna & Robusta</h2>
+                    <p class="text-gray-600 mb-6 leading-relaxed">Construído com as melhores práticas de desenvolvimento, utilizando o padrão arquitetural <strong>Client-Side MVC</strong> puramente em Vanilla JS para máxima performance e baixo acoplamento.</p>
+                    <a href="https://dadosabertos.camara.leg.br/" target="_blank" class="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700 transition">
+                        Conheça a API Oficial da Câmara <i class="fa-solid fa-arrow-up-right-from-square ml-2 text-xs"></i>
+                    </a>
+                </div>
+                
+                <div class="flex-1 grid grid-cols-2 gap-4">
+                    <div class="p-6 bg-gray-50 rounded-xl border border-gray-100">
+                        <i class="fa-brands fa-js text-yellow-400 text-3xl mb-3 block"></i>
+                        <h4 class="font-bold text-gray-900">Vanilla JS MVC</h4>
+                        <p class="text-xs text-gray-500 mt-1">Lógica desacoplada sem frameworks pesados.</p>
+                    </div>
+                    <div class="p-6 bg-gray-50 rounded-xl border border-gray-100">
+                        <i class="fa-solid fa-wind text-teal-400 text-3xl mb-3 block"></i>
+                        <h4 class="font-bold text-gray-900">Tailwind CSS</h4>
+                        <p class="text-xs text-gray-500 mt-1">Estilização utilitária super responsiva e rápida.</p>
+                    </div>
+                    <div class="p-6 bg-gray-50 rounded-xl border border-gray-100">
+                        <i class="fa-solid fa-chart-line text-rose-400 text-3xl mb-3 block"></i>
+                        <h4 class="font-bold text-gray-900">Chart.js</h4>
+                        <p class="text-xs text-gray-500 mt-1">Visualização de dados interativa e dinâmica.</p>
+                    </div>
+                    <div class="p-6 bg-gray-50 rounded-xl border border-gray-100">
+                        <i class="fa-solid fa-server text-blue-500 text-3xl mb-3 block"></i>
+                        <h4 class="font-bold text-gray-900">Back4App (Parse)</h4>
+                        <p class="text-xs text-gray-500 mt-1">Backend as a Service para persistência de Auth e Dados.</p>
                     </div>
                 </div>
-            
-            <!-- Grid de Deputados -->
-            <div id="deputados-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                <!-- Cards injetados via JS -->
             </div>
-        </section>
-        
-    </main>
-
-    <!-- Login/Register Modal -->
-    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-96 max-w-full">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-900">Acesso</h3>
-                <button id="close-modal" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <form id="auth-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email / Usuário</label>
-                    <input type="text" id="auth-email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-                    <input type="password" id="auth-password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-                </div>
-                <div id="auth-error" class="hidden text-red-500 text-sm font-medium"></div>
-                <div class="pt-2 flex gap-3">
-                    <button type="button" id="btn-login" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition-colors">Login</button>
-                    <button type="button" id="btn-signup" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors">Criar Conta</button>
-                </div>
-            </form>
         </div>
-    </div>
+    </section>
 
-    <!-- Modal Avaliação -->
-    <div id="avaliacao-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-96 max-w-full">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-900">Avaliar Deputado</h3>
-                <button id="close-avaliacao-modal" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-10 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-eye text-xl text-blue-400"></i>
+                <span class="text-lg font-bold text-white tracking-tight">De Olho na Câmara</span>
             </div>
-            
-            <p id="avaliacao-deputado-nome" class="text-center font-medium text-gray-700 mb-6 text-lg"></p>
-
-            <div class="flex justify-center gap-2 mb-6" id="estrelas-container">
-                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="1"><i class="fa-solid fa-star"></i></button>
-                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="2"><i class="fa-solid fa-star"></i></button>
-                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="3"><i class="fa-solid fa-star"></i></button>
-                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="4"><i class="fa-solid fa-star"></i></button>
-                <button class="estrela-btn text-gray-300 hover:text-yellow-400 text-3xl transition-colors" data-nota="5"><i class="fa-solid fa-star"></i></button>
+            <p class="text-gray-500 text-sm">Desenvolvido com foco na transparência e inovação política.</p>
+            <div class="flex gap-4">
+                <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="pages/dashboard.html" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </a>
             </div>
-            
-            <p id="avaliacao-nota-selecionada" class="text-center text-sm text-gray-500 mb-4 h-5"></p>
-
-            <div class="mb-5">
-                <label for="avaliacao-comentario" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Anotação (Opcional):</label>
-                <textarea id="avaliacao-comentario" rows="3" class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none text-gray-700" placeholder="Digite aqui uma observação ou anotação sobre o deputado..."></textarea>
-            </div>
-
-            <button type="button" id="btn-confirmar-avaliacao" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold transition-colors">Confirmar Avaliação</button>
         </div>
-    </div>
+    </footer>
 
-    <!-- Nosso Motor Lógico e Variáveis de Ambiente -->
-    <script src="assets/js/core/config.js"></script>
-    <script src="assets/js/services/back4app.js"></script>
-    <script src="assets/js/services/cache.js"></script>
-    <script src="assets/js/services/camaraApi.js"></script>
-    
-    <script src="assets/js/models/DeputadoModel.js"></script>
-    <script src="assets/js/models/MonitoramentoModel.js"></script>
-    <script src="assets/js/models/AvaliacaoModel.js"></script>
-    
-    <script src="assets/js/core/app.js"></script>
-    
-    <script src="assets/js/views/DashboardView.js"></script>
-    <script src="assets/js/controllers/DashboardController.js"></script>
 </body>
 </html>

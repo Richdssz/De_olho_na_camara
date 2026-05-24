@@ -30,7 +30,7 @@ class PerfilDeputadoController {
             this.view.mostrarCarregamento();
 
             // 1. Dados cadastrais
-            const deputadoResp = await window.DeputadoModel.buscarPorId(id);
+            const deputadoResp = await window.DeputadoModel.buscarDetalhes(id);
             if (!deputadoResp.success) throw new Error("Deputado não encontrado.");
             
             const deputado = deputadoResp.data;
