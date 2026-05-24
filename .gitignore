@@ -2,3 +2,4 @@
 !README.md
 .env
 node_modules/
+js/config.js

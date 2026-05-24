@@ -17,8 +17,7 @@ function cleanKey(val) {
     return val.replace(/['",\s{}]/g, '').trim();
 }
 
-// Função para tentar extrair as chaves do .env caso o dotenv puro não as encontre
-// (isso acontece porque o .env original tem sintaxe de JavaScript: window.ENV = { ... })
+// Função para tentar extrair as chaves do .env ou js/config.js caso o dotenv puro não as encontre
 function getParseKeys() {
     let appId = cleanKey(process.env.PARSE_APP_ID);
     let jsKey = cleanKey(process.env.PARSE_JS_KEY);
@@ -45,8 +44,24 @@ function getParseKeys() {
             }
         }
     }
+
+    // Se ainda não encontrou, tenta ler de js/config.js
+    if (!appId || !jsKey) {
+        const configPath = path.resolve(__dirname, 'config.js');
+        if (fs.existsSync(configPath)) {
+            const configContent = fs.readFileSync(configPath, 'utf8');
+            const jsAppId = configContent.match(/PARSE_APP_ID\s*:\s*["']([^"']+)["']/);
+            const jsJsKey = configContent.match(/PARSE_JS_KEY\s*:\s*["']([^"']+)["']/);
+            if (jsAppId && jsJsKey) {
+                appId = cleanKey(jsAppId[1]);
+                jsKey = cleanKey(jsJsKey[1]);
+            }
+        }
+    }
+
     return { appId, jsKey };
 }
+
 
 async function inicializarEstruturaBanco() {
     const { appId, jsKey } = getParseKeys();
