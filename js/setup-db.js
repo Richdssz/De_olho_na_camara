@@ -1,27 +1,76 @@
 // js/setup-db.js
 
 /**
- * Script utilitário para inicializar a estrutura do banco de dados (Schema) no Back4App.
+ * Script administrativo para inicializar a estrutura do banco de dados (Schema) no Back4App usando Node.js.
  * Ele cria registros "fantasmas" com todos os campos necessários e os deleta imediatamente,
  * forçando o Parse a criar as tabelas e tipagens corretas no servidor.
  */
+
+const Parse = require('parse/node');
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config();
+
+// Função para limpar caracteres extras de formatação JS (ex: aspas, vírgulas, espaços)
+function cleanKey(val) {
+    if (!val) return '';
+    return val.replace(/['",\s{}]/g, '').trim();
+}
+
+// Função para tentar extrair as chaves do .env caso o dotenv puro não as encontre
+// (isso acontece porque o .env original tem sintaxe de JavaScript: window.ENV = { ... })
+function getParseKeys() {
+    let appId = cleanKey(process.env.PARSE_APP_ID);
+    let jsKey = cleanKey(process.env.PARSE_JS_KEY);
+
+    if (!appId || !jsKey) {
+        const envPath = path.resolve(__dirname, '../.env');
+        if (fs.existsSync(envPath)) {
+            const envContent = fs.readFileSync(envPath, 'utf8');
+            
+            // Tenta formato padrão dotenv (PARSE_APP_ID=xxx)
+            const stdAppId = envContent.match(/^PARSE_APP_ID\s*=\s*(.*)$/m);
+            const stdJsKey = envContent.match(/^PARSE_JS_KEY\s*=\s*(.*)$/m);
+            if (stdAppId && stdJsKey) {
+                appId = cleanKey(stdAppId[1]);
+                jsKey = cleanKey(stdJsKey[1]);
+            } else {
+                // Tenta formato JavaScript (PARSE_APP_ID: "xxx")
+                const jsAppId = envContent.match(/PARSE_APP_ID\s*:\s*["']([^"']+)["']/);
+                const jsJsKey = envContent.match(/PARSE_JS_KEY\s*:\s*["']([^"']+)["']/);
+                if (jsAppId && jsJsKey) {
+                    appId = cleanKey(jsAppId[1]);
+                    jsKey = cleanKey(jsJsKey[1]);
+                }
+            }
+        }
+    }
+    return { appId, jsKey };
+}
+
 async function inicializarEstruturaBanco() {
-    const currentUser = Parse.User.current();
-    
-    if (!currentUser) {
-        alert("Erro: Você precisa criar uma conta e fazer login primeiro para inicializar o banco de dados.");
-        console.error("Tentativa de inicializar BD sem usuário logado.");
-        return;
+    const { appId, jsKey } = getParseKeys();
+
+    if (!appId || !jsKey) {
+        console.error("❌ Erro: Chaves PARSE_APP_ID ou PARSE_JS_KEY não encontradas no ambiente ou no arquivo .env.");
+        process.exit(1);
     }
 
-    console.log("🚀 Iniciando o setup do Schema do Banco de Dados...");
-    
+    // Inicializa o Parse SDK para Node.js
+    Parse.initialize(appId, jsKey);
+    Parse.serverURL = 'https://parseapi.back4app.com/';
+
+    console.log("🚀 Iniciando o setup do Schema do Banco de Dados no Back4App...");
+
     try {
+        // Criar um pointer dummy para o usuário (evita precisar de usuário real ou login para criar as colunas do tipo Pointer)
+        const dummyUser = Parse.User.createWithoutData("dummy_user_id");
+
         // 1. Classe Monitoramento
         console.log("1/3 - Criando tabela Monitoramento...");
         const Monitoramento = Parse.Object.extend("Monitoramento");
         const objMonitoramento = new Monitoramento();
-        objMonitoramento.set("usuario", currentUser);
+        objMonitoramento.set("usuario", dummyUser);
         objMonitoramento.set("deputadoId", 0);
         objMonitoramento.set("nomeDeputado", "Setup");
         objMonitoramento.set("notaUsuario", "Setup");
@@ -33,7 +82,7 @@ async function inicializarEstruturaBanco() {
         console.log("2/3 - Criando tabela Avaliacao...");
         const Avaliacao = Parse.Object.extend("Avaliacao");
         const objAvaliacao = new Avaliacao();
-        objAvaliacao.set("usuario", currentUser);
+        objAvaliacao.set("usuario", dummyUser);
         objAvaliacao.set("deputadoId", 0);
         objAvaliacao.set("nomeDeputado", "Setup");
         objAvaliacao.set("nota", 5);
@@ -45,7 +94,7 @@ async function inicializarEstruturaBanco() {
         console.log("3/3 - Criando tabela TermometroLeis...");
         const TermometroLeis = Parse.Object.extend("TermometroLeis");
         const objTermometroLeis = new TermometroLeis();
-        objTermometroLeis.set("usuario", currentUser);
+        objTermometroLeis.set("usuario", dummyUser);
         objTermometroLeis.set("proposicaoId", 0);
         objTermometroLeis.set("votoUsuario", "Apoio");
         await objTermometroLeis.save();
@@ -53,13 +102,11 @@ async function inicializarEstruturaBanco() {
         console.log("✅ Tabela TermometroLeis configurada!");
 
         console.log("🎉 SETUP CONCLUÍDO! Todas as tabelas foram criadas no Back4App com sucesso.");
-        alert("Sucesso! Estrutura do banco inicializada no Back4App.");
-
     } catch (error) {
         console.error("❌ Erro durante o setup do banco de dados:", error);
-        alert("Erro ao inicializar o banco de dados. Verifique o console.");
+        process.exit(1);
     }
 }
 
-// Expõe a função globalmente para poder ser chamada no console
-window.inicializarEstruturaBanco = inicializarEstruturaBanco;
+// Executa a função
+inicializarEstruturaBanco();

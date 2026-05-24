@@ -1,0 +1,25 @@
+{
+  "name": "de_olho_na_camara",
+  "version": "1.0.0",
+  "description": "> _\"Acompanhe o que está sendo votado hoje e como o seu dinheiro é gasto, sem jargões e sem complicações.\"_",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SIN-disciplina-PI2/De_olho_na_camara.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SIN-disciplina-PI2/De_olho_na_camara/issues"
+  },
+  "homepage": "https://github.com/SIN-disciplina-PI2/De_olho_na_camara#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "parse": "^8.6.0"
+  }
+}
