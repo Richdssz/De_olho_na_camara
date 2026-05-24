@@ -35,8 +35,8 @@ function showError(msg) {
 
 async function carregarDadosDeputado(id) {
     try {
-        // 1. Fetch deputado data
-        const urlInfo = `https://dadosabertos.camara.leg.br/api/v2/deputados/${id}`;
+        // 1. Fetch deputado data (adding ?formato=json fixes a CORS bug on their API)
+        const urlInfo = `https://dadosabertos.camara.leg.br/api/v2/deputados/${id}?formato=json`;
         const resInfo = await fetch(urlInfo);
         
         if (!resInfo.ok) throw new Error(`Erro na API (Info): ${resInfo.status}`);
@@ -48,7 +48,7 @@ async function carregarDadosDeputado(id) {
 
         // 2. Fetch despesas do ano corrente
         const anoCorrente = new Date().getFullYear();
-        const urlDespesas = `https://dadosabertos.camara.leg.br/api/v2/deputados/${id}/despesas?ano=${anoCorrente}&ordem=ASC&ordenarPor=ano`;
+        const urlDespesas = `https://dadosabertos.camara.leg.br/api/v2/deputados/${id}/despesas?ano=${anoCorrente}&ordem=ASC&ordenarPor=ano&formato=json`;
         const resDespesas = await fetch(urlDespesas);
         
         if (resDespesas.ok) {
