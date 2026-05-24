@@ -134,8 +134,16 @@ class DashboardView {
         }
 
         const backgroundColors = [
-            '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', 
-            '#ec4899', '#06b6d4', '#f97316', '#64748b', '#14b8a6'
+            '#0f766e', // teal-700
+            '#16a34a', // green-600
+            '#004D40', // dark teal
+            '#f59e0b', // amber-500
+            '#64748b', // slate-500
+            '#059669', // emerald-600
+            '#0d9488', // teal-600
+            '#ca8a04', // yellow-600
+            '#334155', // slate-700
+            '#10b981'  // emerald-500
         ];
 
         this.chartInstancia = new Chart(this.ctxGrafico, {

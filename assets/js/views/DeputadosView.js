@@ -59,7 +59,7 @@ class DeputadosView {
         this.grid.innerHTML = '<p class="text-gray-500 col-span-full text-center py-20 font-medium">Nenhum deputado encontrado com os filtros aplicados.</p>';
     }
 
-    preencherFiltroPartidos(partidos) {
+    preencherFiltroPartidos(deputados) {
         if (!this.filtroPartido) return;
         
         // Limpa opções antigas exceto a primeira ("Todos os Partidos")
@@ -67,10 +67,13 @@ class DeputadosView {
             this.filtroPartido.remove(1);
         }
 
-        partidos.forEach(p => {
+        // Extrai siglas únicas dos deputados e ordena
+        const siglasUnicas = [...new Set(deputados.map(d => d.siglaPartido).filter(Boolean))].sort();
+
+        siglasUnicas.forEach(sigla => {
             const option = document.createElement('option');
-            option.value = p;
-            option.textContent = p;
+            option.value = sigla;
+            option.textContent = sigla;
             this.filtroPartido.appendChild(option);
         });
     }
