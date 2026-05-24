@@ -67,7 +67,7 @@ O planejamento segue a regra dos três estágios:
 
 ---
 
-## 📊 SPRINT 2 — PERFIL DO DEPUTADO (Próximo Objetivo Imediato)
+## 📊 SPRINT 2 — PERFIL DO DEPUTADO (Concluído)
 
 **Objetivo:** A tela mais importante do sistema — análise individual completa do parlamentar
 
@@ -75,26 +75,26 @@ O planejamento segue a regra dos três estágios:
 
 #### Serviços Adicionais
 
-- [ ] `camaraApi.js` + `buscarVotacoesDeputado()`, `buscarEventosDeputado()`
-- [ ] `analytics.js` — `calcularTaxaPresenca()`, `calcularMediaGastos()`, `detectarAnomalias()`
+- [x] `camaraApi.js` + `buscarVotacoesDeputado()`, `buscarEventosDeputado()`
+- [x] `analytics.js` — `calcularTaxaPresenca()`, `calcularMediaGastos()`, `detectarAnomalias()`
 
 #### Página `deputado-perfil.html`
 
-- [ ] Header com foto, nome, partido, estado e badge de status do mandato
-- [ ] **4 KPI Cards:** Presença %, Gasto médio mensal, Coesão partidária %, Total de proposições
-- [ ] **Badge de anomalia** (se detectada, aparece em destaque: "⚠️ Anomalia detectada")
-- [ ] Gráfico 1: **Gastos CEAP** por mês (últimos 12 meses)
-- [ ] Gráfico 2: **Taxa de presença** ao longo do tempo (últimos meses)
-- [ ] Gráfico 3: **Categorias de gasto** (distribuição por tipo de despesa via Chart.js)
-- [ ] Tabela: Últimas 20 votações do deputado com resultado (Sim/Não/Ausente)
-- [ ] Botão "Acompanhar no Radar" direto do perfil
-- [ ] Export de relatório individual
+- [x] Header com foto, nome, partido, estado e badge de status do mandato
+- [x] **4 KPI Cards:** Presença %, Gasto médio mensal, Coesão partidária %, Total de proposições
+- [x] **Badge de anomalia** (se detectada, aparece em destaque: "⚠️ Anomalia detectada")
+- [x] Gráfico 1: **Gastos CEAP** por mês (últimos 12 meses)
+- [x] Gráfico 2: **Taxa de presença** ao longo do tempo (últimos meses)
+- [x] Gráfico 3: **Categorias de gasto** (distribuição por tipo de despesa via Chart.js)
+- [x] Tabela: Últimas 20 votações do deputado com resultado (Sim/Não/Ausente)
+- [x] Botão "Acompanhar no Radar" direto do perfil
+- [x] Export de relatório individual
 
 #### Página `deputados.html` (listagem completa)
 
-- [ ] Grid completo de deputados com filtros por UF, Partido e Nome
-- [ ] Ordenação flexível (por presença, por gastos, etc.)
-- [ ] Paginação dos resultados da API da Câmara
+- [x] Grid completo de deputados com filtros por UF, Partido e Nome
+- [x] Ordenação flexível (por presença, por gastos, etc.)
+- [x] Paginação dos resultados da API da Câmara
 
 ---
 
@@ -138,6 +138,25 @@ O planejamento segue a regra dos três estágios:
 
 ### Sprint 7 — Mapa Político
 - [ ] Heatmap geográfico de votações e representações partidárias
+
+### Sprint 8 — Portal de Engajamento e Auditoria Cidadã
+- [ ] Criar fórum de debates para proposições legislativas
+- [ ] Implementar sistema de votação simulada ("Aprovar" / "Rejeitar") para usuários logados
+- [ ] Exibir "Termômetro da Opinião Pública" nas proposições de lei
+
+### Sprint 9 — Bússola Ideológica e Algoritmo de Match
+- [ ] Criar quiz interativo de perguntas econômicas e sociais
+- [ ] Mapear respostas em um gráfico de espectro político (Nolan Chart) com Chart.js
+- [ ] Desenvolver algoritmo de cruzamento matemático de votos para Match com políticos
+
+### Sprint 10 — Mapa de Espectro Ideológico dos Partidos
+- [ ] Agrupar e calcular orientação de votos dos parlamentares por partido
+- [ ] Plotar os partidos dinamicamente em um mapa bidimensional baseado em votos reais
+
+### Sprint 11 — Super Upgrade Visual e Gamificação
+- [ ] Revitalizar design system em Tailwind com foco em micro-animações
+- [ ] Desenvolver sistema dinâmico de medalhas (badges) por metas de atuação (presença, economia, etc.)
+- [ ] Integrar ícones de alta qualidade para cada agremiação partidária
 
 ---
 

@@ -6,6 +6,7 @@
  * forçando o Parse a criar as tabelas e tipagens corretas no servidor.
  */
 
+/**Comnetei pra não funcionar mais
 const Parse = require('parse/node');
 const fs = require('fs');
 const path = require('path');
@@ -125,3 +126,6 @@ async function inicializarEstruturaBanco() {
 
 // Executa a função
 inicializarEstruturaBanco();
+
+
+*/

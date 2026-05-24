@@ -2,4 +2,5 @@
 !README.md
 .env
 node_modules/
-js/config.js
+assets/js/core/config.js
+IDEIAS.md
