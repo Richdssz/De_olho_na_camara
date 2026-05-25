@@ -292,7 +292,100 @@ class AnalyticsService {
 
         return badges;
     }
+
+    /**
+     * Calcula o ROI Parlamentar (custo por proposicao).
+     * @param {number} totalGasto - Total gasto em cota parlamentar no periodo.
+     * @param {number} totalProposicoes - Total de proposicoes apresentadas.
+     */
+    calcularROIParlamentar(totalGasto, totalProposicoes) {
+        if (totalProposicoes === 0 || totalGasto === 0) {
+            return {
+                custoPorProposicao: 0,
+                totalGasto: totalGasto,
+                totalProposicoes: totalProposicoes,
+                classificacao: { texto: 'Sem dados suficientes', classe: 'bg-gray-50 text-gray-700 border-gray-200' }
+            };
+        }
+
+        const custoPorProp = totalGasto / totalProposicoes;
+
+        // Benchmarks baseados em media nacional estimada
+        // Media nacional: ~R$ 420.000/ano de cota / ~15 proposicoes = ~R$ 28.000 por proposicao
+        const BENCHMARK = 28000;
+        let classificacao;
+
+        if (custoPorProp <= BENCHMARK * 0.75) {
+            classificacao = { texto: 'Alta eficiencia', classe: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        } else if (custoPorProp <= BENCHMARK * 1.5) {
+            classificacao = { texto: 'Eficiencia media', classe: 'bg-amber-50 text-amber-700 border-amber-200' };
+        } else {
+            classificacao = { texto: 'Baixa eficiencia', classe: 'bg-red-50 text-red-700 border-red-200' };
+        }
+
+        return {
+            custoPorProposicao: custoPorProp,
+            totalGasto: totalGasto,
+            totalProposicoes: totalProposicoes,
+            classificacao: classificacao
+        };
+    }
+
+    /**
+     * Calcula a taxa de sucesso legislativo do deputado.
+     * @param {Array} proposicoesDetalhadas - Lista de proposicoes com dados de situacao.
+     */
+    calcularTaxaSucessoLegislativo(proposicoesDetalhadas) {
+        if (!proposicoesDetalhadas || proposicoesDetalhadas.length === 0) {
+            return {
+                taxa: 0,
+                aprovadas: 0,
+                total: 0,
+                emTramitacao: 0,
+                arquivadas: 0,
+                classificacao: { texto: 'Sem proposicoes', classe: 'bg-gray-50 text-gray-700 border-gray-200' }
+            };
+        }
+
+        let aprovadas = 0;
+        let arquivadas = 0;
+        let emTramitacao = 0;
+
+        proposicoesDetalhadas.forEach(p => {
+            const situacao = (p.statusProposicao && p.statusProposicao.descricaoSituacao) || '';
+            const sitLower = situacao.toLowerCase();
+
+            if (sitLower.includes('transformad') || sitLower.includes('lei') || sitLower.includes('aprovad') || sitLower.includes('promulgad')) {
+                aprovadas++;
+            } else if (sitLower.includes('arquivad') || sitLower.includes('rejeitad') || sitLower.includes('devolvid') || sitLower.includes('retirad')) {
+                arquivadas++;
+            } else {
+                emTramitacao++;
+            }
+        });
+
+        const total = proposicoesDetalhadas.length;
+        const taxa = total > 0 ? Math.round((aprovadas / total) * 100) : 0;
+
+        let classificacao;
+        if (taxa >= 20) {
+            classificacao = { texto: 'Alto sucesso', classe: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        } else if (taxa >= 5) {
+            classificacao = { texto: 'Sucesso moderado', classe: 'bg-amber-50 text-amber-700 border-amber-200' };
+        } else {
+            classificacao = { texto: 'Baixo sucesso', classe: 'bg-red-50 text-red-700 border-red-200' };
+        }
+
+        return {
+            taxa: taxa,
+            aprovadas: aprovadas,
+            total: total,
+            emTramitacao: emTramitacao,
+            arquivadas: arquivadas,
+            classificacao: classificacao
+        };
+    }
 }
 
-// Expõe globalmente
+// Expoe globalmente
 window.analytics = new AnalyticsService();

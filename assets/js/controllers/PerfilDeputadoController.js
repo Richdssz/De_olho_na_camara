@@ -1,6 +1,3 @@
-/**
- * Controller do Perfil do Deputado (deputado-perfil.html)
- */
 class PerfilDeputadoController {
     constructor() {
         this.view = new window.PerfilDeputadoView();
@@ -9,7 +6,8 @@ class PerfilDeputadoController {
         this.notaSelecionada = 0;
         this.proposicoesOriginais = [];
         this.votosMapLocal = {};
-        this.anoAnalise = 2026; // ano base padrão
+        this.anoAnalise = 2026;
+        this.mesAnalise = null; // null = todos os meses
     }
 
     async init() {
@@ -17,7 +15,7 @@ class PerfilDeputadoController {
         const deputadoId = urlParams.get('id');
 
         if (!deputadoId) {
-            this.view.mostrarErro("ID do deputado não fornecido na URL.");
+            this.view.mostrarErro("ID do deputado nao fornecido na URL.");
             return;
         }
 
@@ -45,7 +43,7 @@ class PerfilDeputadoController {
 
             // 1. Dados cadastrais
             const deputadoResp = await window.DeputadoModel.buscarDetalhes(id);
-            if (!deputadoResp.success) throw new Error("Deputado não encontrado.");
+            if (!deputadoResp.success) throw new Error("Deputado nao encontrado.");
             
             const deputado = deputadoResp.data;
             this.deputadoNomeGlobal = deputado.ultimoStatus.nome || deputado.nomeCivil;
@@ -58,28 +56,48 @@ class PerfilDeputadoController {
 
             // 2. Coletando dados complementares
             const anoCorrente = this.anoAnalise;
+            const mesCorrente = this.mesAnalise;
+
+            // Define intervalo de datas baseado no filtro
+            let dataInicio, dataFim;
+            if (mesCorrente) {
+                const mesStr = String(mesCorrente).padStart(2, '0');
+                dataInicio = `${anoCorrente}-${mesStr}-01`;
+                // Ultimo dia do mes
+                const ultimoDia = new Date(anoCorrente, mesCorrente, 0).getDate();
+                dataFim = `${anoCorrente}-${mesStr}-${ultimoDia}`;
+            } else {
+                dataInicio = `${anoCorrente}-01-01`;
+                dataFim = `${anoCorrente}-12-31`;
+            }
             
-            const [despesas, eventosDeputado, proposicoes, votacoesRecentes, sessoesPlenario] = await Promise.all([
-                window.camaraApi.buscarDespesas(id, anoCorrente).catch(() => []),
-                window.camaraApi.buscarEventos(id, `${anoCorrente}-01-01`, `${anoCorrente}-12-31`).catch(() => []),
+            const [despesas, eventosDeputado, proposicoes, votacoesDeputado, sessoesPlenario, orgaos, frentes, historico, discursos] = await Promise.all([
+                window.camaraApi.buscarDespesas(id, anoCorrente, mesCorrente).catch(() => []),
+                window.camaraApi.buscarEventos(id, dataInicio, dataFim).catch(() => []),
                 window.camaraApi.buscarProposicoesAutor(id).catch(() => []),
-                window.camaraApi.buscarVotacoesRecentes(15).catch(() => []),
-                window.camaraApi.buscarSessoesOrgao(114, `${anoCorrente}-01-01`, `${anoCorrente}-12-31`).catch(() => []) // 114 = Plenário da Câmara
+                window.camaraApi.buscarVotacoesDeputado(id, 15).catch(() => []),
+                window.camaraApi.buscarSessoesOrgao(114, dataInicio, dataFim).catch(() => []),
+                window.camaraApi.buscarOrgaosDeputado(id).catch(() => []),
+                window.camaraApi.buscarFrentesDeputado(id).catch(() => []),
+                window.camaraApi.buscarHistoricoDeputado(id).catch(() => []),
+                window.camaraApi.buscarDiscursosDeputado(id, {
+                    dataInicio: dataInicio,
+                    dataFim: dataFim
+                }).catch(() => [])
             ]);
 
             this.proposicoesOriginais = proposicoes || [];
 
             // 3. Analytics
-            // Passamos as sessoesPlenario oficiais como base de cálculo
             const analisePresenca = window.analytics.calcularTaxaPresenca(eventosDeputado, anoCorrente, sessoesPlenario);
             const analiseGastos = window.analytics.calcularMediaGastos(despesas);
             const totalProposicoes = proposicoes.length;
 
-            // 4. Votos Nominais
+            // 4. Votos Nominais - usando endpoint direto do deputado
             const votosDeputadoMapeados = [];
             const orientacoesMapeadas = {};
 
-            await Promise.all(votacoesRecentes.map(async (v) => {
+            await Promise.all((votacoesDeputado || []).map(async (v) => {
                 try {
                     const [votosList, orientacoesList] = await Promise.all([
                         window.camaraApi.buscarVotosVotacao(v.id).catch(() => []),
@@ -91,14 +109,14 @@ class PerfilDeputadoController {
 
                     votosDeputadoMapeados.push({
                         votacaoId: v.id,
-                        descricao: v.descricao || "Votação em Plenário",
+                        descricao: v.descricao || "Votacao em Plenario",
                         data: v.dataHoraRegistro || v.data,
                         voto: tipoVoto
                     });
 
                     orientacoesMapeadas[v.id] = orientacoesList || [];
                 } catch (err) {
-                    console.error(`Erro buscando votos/orientações da votação ${v.id}:`, err);
+                    console.error('Erro buscando votos/orientacoes da votacao ' + v.id + ':', err);
                 }
             }));
 
@@ -117,14 +135,35 @@ class PerfilDeputadoController {
                 totalProposicoes: totalProposicoes
             });
 
+            // 4.1 ROI Parlamentar
+            const analiseROI = window.analytics.calcularROIParlamentar(analiseGastos.total, totalProposicoes);
+
+            // 4.2 Taxa de Sucesso Legislativo (busca detalhes das proposicoes em paralelo, limitando a 20)
+            let analiseSucesso = null;
+            try {
+                const propParaDetalhar = proposicoes.slice(0, 20);
+                const detalhes = await Promise.all(
+                    propParaDetalhar.map(p =>
+                        window.camaraApi.buscarDetalheProposicao(p.id).catch(() => null)
+                    )
+                );
+                const detalhesValidos = detalhes.filter(d => d !== null);
+                analiseSucesso = window.analytics.calcularTaxaSucessoLegislativo(detalhesValidos);
+            } catch (err) {
+                console.error('Erro ao calcular taxa de sucesso legislativo:', err);
+                analiseSucesso = window.analytics.calcularTaxaSucessoLegislativo([]);
+            }
+
             // 5. Renderizar na View
-            this.view.renderizarPainelKPIs(analisePresenca, analiseGastos, analiseCoesao, totalProposicoes);
+            this.view.renderizarPainelKPIs(analisePresenca, analiseGastos, analiseCoesao, totalProposicoes, analiseROI, analiseSucesso);
             this.view.renderizarBadges(badges);
             this.view.renderizarAnomalias(analiseAnomalias);
             this.view.renderizarTabelaVotacoes(votosDeputadoMapeados, orientacoesMapeadas, siglaPartido);
             this.view.renderizarGraficos(despesas, eventosDeputado, sessoesPlenario);
+            this.view.renderizarBeneficiosRH(orgaos, frentes, historico);
+            this.view.renderizarDiscursos(discursos);
 
-            // 5.1 Atualizar Links de Transparência
+            // 5.1 Atualizar Links de Transparencia
             const urlCamara = `https://www.camara.leg.br/deputados/${id}`;
             const linkDespesas = document.getElementById('link-transparencia-despesas');
             if (linkDespesas) linkDespesas.href = urlCamara;
@@ -133,13 +172,13 @@ class PerfilDeputadoController {
             const linkVotacoes = document.getElementById('link-transparencia-votacoes');
             if (linkVotacoes) linkVotacoes.href = urlCamara;
 
-            // 6. Termômetro de Leis - Carregar votos comunitários para as proposições
+            // 6. Termometro de Leis
             const propToShow = proposicoes.slice(0, 6);
             await this.renderizarProposicoesAtualizadas(propToShow);
 
             this.view.mostrarConteudo();
 
-            // Carrega a seção de avaliações da Voz do Cidadão
+            // Carrega a secao de avaliacoes da Voz do Cidadao
             await this.carregarAvaliacoes(id);
         } catch (error) {
             console.error("Erro no perfil:", error);
@@ -327,8 +366,9 @@ class PerfilDeputadoController {
         }
     }
 
-    async handleFiltroAnoGlobal(ano) {
+    async handleFiltroAnoGlobal(ano, mes) {
         this.anoAnalise = ano;
+        this.mesAnalise = mes || null;
         if (this.deputadoIdGlobal) {
             await this.carregarDadosDeputado(this.deputadoIdGlobal);
         }

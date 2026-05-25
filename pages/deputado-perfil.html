@@ -90,17 +90,33 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-wrap items-center justify-between gap-4 print-card no-print">
                 <div>
                     <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2">
-                        <i class="fa-solid fa-calendar-days text-teal-600"></i> Filtro por Período
+                        <i class="fa-solid fa-calendar-days text-teal-600"></i> Filtro por Periodo
                     </h3>
-                    <p class="text-sm text-gray-500 mt-0.5">Selecione o ano base para filtrar as métricas de presença, gastos e votações do parlamentar.</p>
+                    <p class="text-sm text-gray-500 mt-0.5">Selecione o ano e mes para filtrar as metricas de presenca, gastos e votacoes do parlamentar.</p>
                 </div>
-                <div class="flex items-center gap-3">
-                    <label for="global-filtro-ano" class="text-sm font-semibold text-gray-700">Ano de Análise:</label>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <label for="global-filtro-ano" class="text-sm font-semibold text-gray-700">Ano:</label>
                     <select id="global-filtro-ano" class="px-4 py-2 border border-gray-200 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500 font-bold transition-all cursor-pointer">
                         <option value="2026" selected>2026 (Ano Atual)</option>
                         <option value="2025">2025</option>
                         <option value="2024">2024</option>
                         <option value="2023">2023</option>
+                    </select>
+                    <label for="global-filtro-mes" class="text-sm font-semibold text-gray-700 ml-2">Mes:</label>
+                    <select id="global-filtro-mes" class="px-4 py-2 border border-gray-200 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500 font-bold transition-all cursor-pointer">
+                        <option value="" selected>Todos os Meses</option>
+                        <option value="1">Janeiro</option>
+                        <option value="2">Fevereiro</option>
+                        <option value="3">Marco</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Maio</option>
+                        <option value="6">Junho</option>
+                        <option value="7">Julho</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
                     </select>
                 </div>
             </div>
@@ -151,11 +167,11 @@
             </div>
 
             <!-- KPI Cards Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Presença % -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Presenca % -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition print-card">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-sm font-semibold text-gray-500">Presença Plenária</span>
+                        <span class="text-sm font-semibold text-gray-500">Presenca Plenaria</span>
                         <div class="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 text-lg">
                             <i class="fa-solid fa-calendar-check"></i>
                         </div>
@@ -166,10 +182,10 @@
                     </div>
                 </div>
 
-                <!-- Gasto Médio Mensal -->
+                <!-- Gasto Medio Mensal -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition print-card">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-sm font-semibold text-gray-500">Gasto Médio Mensal</span>
+                        <span class="text-sm font-semibold text-gray-500">Gasto Medio Mensal</span>
                         <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 text-lg">
                             <i class="fa-solid fa-money-bill-wave"></i>
                         </div>
@@ -180,10 +196,10 @@
                     </div>
                 </div>
 
-                <!-- Coesão Partidária % -->
+                <!-- Coesao Partidaria % -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition print-card">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-sm font-semibold text-gray-500">Coesão Partidária</span>
+                        <span class="text-sm font-semibold text-gray-500">Coesao Partidaria</span>
                         <div class="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center text-violet-500 text-lg">
                             <i class="fa-solid fa-code-merge"></i>
                         </div>
@@ -194,10 +210,10 @@
                     </div>
                 </div>
 
-                <!-- Total de Proposições -->
+                <!-- Total de Proposicoes -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition print-card">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-sm font-semibold text-gray-500">Total Proposições</span>
+                        <span class="text-sm font-semibold text-gray-500">Total Proposicoes</span>
                         <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 text-lg">
                             <i class="fa-solid fa-file-invoice"></i>
                         </div>
@@ -205,6 +221,34 @@
                     <div>
                         <h3 id="kpi-proposicoes" class="text-3xl font-extrabold text-gray-900 mb-2">-</h3>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200">Mandato Corrente</span>
+                    </div>
+                </div>
+
+                <!-- ROI Parlamentar -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition print-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-semibold text-gray-500">ROI Parlamentar</span>
+                        <div class="w-10 h-10 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-600 text-lg">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 id="kpi-roi" class="text-2xl font-extrabold text-gray-900 mb-2">R$ -</h3>
+                        <span id="badge-roi" class="px-2.5 py-0.5 rounded-full text-xs font-semibold border">Carregando...</span>
+                    </div>
+                </div>
+
+                <!-- Taxa de Sucesso Legislativo -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition print-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-semibold text-gray-500">Sucesso Legislativo</span>
+                        <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-lg">
+                            <i class="fa-solid fa-gavel"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 id="kpi-sucesso" class="text-3xl font-extrabold text-gray-900 mb-2">-%</h3>
+                        <span id="badge-sucesso" class="px-2.5 py-0.5 rounded-full text-xs font-semibold border">Carregando...</span>
                     </div>
                 </div>
             </div>
@@ -248,6 +292,63 @@
                     <div class="w-full h-[250px]">
                         <canvas id="graficoPresenca"></canvas>
                     </div>
+                </div>
+            </div>
+
+            <!-- Secao de Beneficios e Recursos Humanos -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Orgaos e Comissoes -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 print-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-building-columns text-teal-600"></i> Orgaos e Comissoes
+                        </h3>
+                        <span id="orgaos-count" class="text-xs font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">-</span>
+                    </div>
+                    <div id="orgaos-container" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                        <p class="text-gray-500 text-center py-6 font-medium text-sm">Carregando orgaos...</p>
+                    </div>
+                </div>
+
+                <!-- Frentes Parlamentares -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 print-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-people-group text-violet-600"></i> Frentes Parlamentares
+                        </h3>
+                        <span id="frentes-count" class="text-xs font-bold text-violet-600 bg-violet-50 px-3 py-1 rounded-full border border-violet-100">-</span>
+                    </div>
+                    <div id="frentes-container" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                        <p class="text-gray-500 text-center py-6 font-medium text-sm">Carregando frentes...</p>
+                    </div>
+                </div>
+
+                <!-- Historico Parlamentar -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 print-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> Historico Parlamentar
+                        </h3>
+                    </div>
+                    <div id="historico-container" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                        <p class="text-gray-500 text-center py-6 font-medium text-sm">Carregando historico...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secao de Discursos Recentes -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 print-card">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fa-solid fa-microphone-lines text-teal-600"></i> Discursos Recentes
+                        </h3>
+                        <p class="text-sm text-gray-500">Pronunciamentos em plenario e comissoes</p>
+                    </div>
+                    <span id="discursos-count" class="text-xs font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">-</span>
+                </div>
+                <div id="discursos-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <p class="text-gray-500 col-span-full text-center py-8 font-medium text-sm">Carregando discursos...</p>
                 </div>
             </div>
 

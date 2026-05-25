@@ -84,12 +84,12 @@ class PerfilDeputadoView {
         }
     }
 
-    renderizarPainelKPIs(presenca, gastos, coesao, proposicoes) {
+    renderizarPainelKPIs(presenca, gastos, coesao, proposicoes, roi, sucesso) {
         const presencaEl = document.getElementById('kpi-presenca');
         const badgePresenca = document.getElementById('badge-presenca');
         if (presencaEl) presencaEl.textContent = `${presenca.rate}%`;
         if (badgePresenca) {
-            badgePresenca.textContent = `${presenca.presencas} de ${presenca.total} sessões - ${presenca.classificacao.texto}`;
+            badgePresenca.textContent = `${presenca.presencas} de ${presenca.total} sessoes - ${presenca.classificacao.texto}`;
             badgePresenca.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold border ${presenca.classificacao.classe}`;
         }
 
@@ -113,6 +113,30 @@ class PerfilDeputadoView {
 
         const proposicoesEl = document.getElementById('kpi-proposicoes');
         if (proposicoesEl) proposicoesEl.textContent = proposicoes;
+
+        // ROI Parlamentar
+        const roiEl = document.getElementById('kpi-roi');
+        const badgeRoi = document.getElementById('badge-roi');
+        if (roi && roiEl) {
+            roiEl.textContent = roi.custoPorProposicao > 0
+                ? roi.custoPorProposicao.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                : 'N/D';
+        }
+        if (roi && badgeRoi) {
+            badgeRoi.textContent = `Custo por proposicao - ${roi.classificacao.texto}`;
+            badgeRoi.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roi.classificacao.classe}`;
+        }
+
+        // Taxa de Sucesso Legislativo
+        const sucessoEl = document.getElementById('kpi-sucesso');
+        const badgeSucesso = document.getElementById('badge-sucesso');
+        if (sucesso && sucessoEl) {
+            sucessoEl.textContent = `${sucesso.taxa}%`;
+        }
+        if (sucesso && badgeSucesso) {
+            badgeSucesso.textContent = `${sucesso.aprovadas} aprovadas de ${sucesso.total} - ${sucesso.classificacao.texto}`;
+            badgeSucesso.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold border ${sucesso.classificacao.classe}`;
+        }
     }
 
     renderizarBadges(badges) {
@@ -421,11 +445,16 @@ class PerfilDeputadoView {
 
     onFiltroAnoChange(callback) {
         const selectAno = document.getElementById('global-filtro-ano');
-        if (selectAno) {
-            selectAno.addEventListener('change', (e) => {
-                callback(parseInt(e.target.value));
-            });
-        }
+        const selectMes = document.getElementById('global-filtro-mes');
+
+        const handler = () => {
+            const ano = selectAno ? parseInt(selectAno.value) : 2026;
+            const mes = selectMes && selectMes.value ? parseInt(selectMes.value) : null;
+            callback(ano, mes);
+        };
+
+        if (selectAno) selectAno.addEventListener('change', handler);
+        if (selectMes) selectMes.addEventListener('change', handler);
     }
 
     onSalvarAvaliacaoClick(callback) {
@@ -772,6 +801,126 @@ class PerfilDeputadoView {
                 });
             });
         }
+    }
+
+    renderizarBeneficiosRH(orgaos, frentes, historico) {
+        // Orgaos e Comissoes
+        const orgaosContainer = document.getElementById('orgaos-container');
+        const orgaosCount = document.getElementById('orgaos-count');
+        if (orgaosCount) orgaosCount.textContent = orgaos ? orgaos.length : 0;
+
+        if (orgaosContainer) {
+            if (!orgaos || orgaos.length === 0) {
+                orgaosContainer.innerHTML = '<p class="text-gray-400 text-center py-4 font-medium text-sm">Nenhum orgao encontrado.</p>';
+            } else {
+                orgaosContainer.innerHTML = orgaos.map(o => {
+                    const titulo = o.titulo || o.nomeOrgao || 'Sem titulo';
+                    const sigla = o.siglaOrgao || '';
+                    const cargo = o.titulo || '';
+                    const nomeOrgao = o.nomeOrgao || sigla;
+                    return `
+                        <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-sm transition">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">${sigla}</span>
+                                <span class="text-sm font-semibold text-gray-800 truncate" title="${nomeOrgao}">${nomeOrgao}</span>
+                            </div>
+                            ${cargo ? `<p class="text-xs text-gray-500 mt-1 pl-1">${cargo}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Frentes Parlamentares
+        const frentesContainer = document.getElementById('frentes-container');
+        const frentesCount = document.getElementById('frentes-count');
+        if (frentesCount) frentesCount.textContent = frentes ? frentes.length : 0;
+
+        if (frentesContainer) {
+            if (!frentes || frentes.length === 0) {
+                frentesContainer.innerHTML = '<p class="text-gray-400 text-center py-4 font-medium text-sm">Nenhuma frente parlamentar encontrada.</p>';
+            } else {
+                frentesContainer.innerHTML = frentes.map(f => {
+                    const titulo = f.titulo || 'Frente sem titulo';
+                    return `
+                        <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-sm transition">
+                            <p class="text-sm font-semibold text-gray-800 leading-snug">${titulo}</p>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Historico Parlamentar
+        const historicoContainer = document.getElementById('historico-container');
+        if (historicoContainer) {
+            if (!historico || historico.length === 0) {
+                historicoContainer.innerHTML = '<p class="text-gray-400 text-center py-4 font-medium text-sm">Nenhum registro de historico encontrado.</p>';
+            } else {
+                historicoContainer.innerHTML = historico.map(h => {
+                    const dataInicio = h.dataHoraInicio ? new Date(h.dataHoraInicio).toLocaleDateString('pt-BR') : '-';
+                    const dataFim = h.dataHoraFim ? new Date(h.dataHoraFim).toLocaleDateString('pt-BR') : 'Atual';
+                    const situacao = h.descricaoStatus || h.situacao || '';
+                    const condicao = h.condicaoEleitoral || '';
+                    const partido = h.siglaPartidoBloco || '';
+                    const uf = h.siglaUfRepresentacaoAtual || '';
+
+                    return `
+                        <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-sm transition">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    ${partido ? `<span class="text-xs font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100">${partido}</span>` : ''}
+                                    ${uf ? `<span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">${uf}</span>` : ''}
+                                </div>
+                                <span class="text-xs text-gray-400 font-medium">${dataInicio} - ${dataFim}</span>
+                            </div>
+                            ${situacao ? `<p class="text-xs text-gray-600 mt-1">${situacao} ${condicao ? '(' + condicao + ')' : ''}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    }
+
+    renderizarDiscursos(discursos) {
+        const container = document.getElementById('discursos-container');
+        const countEl = document.getElementById('discursos-count');
+        if (countEl) countEl.textContent = discursos ? discursos.length : 0;
+
+        if (!container) return;
+
+        if (!discursos || discursos.length === 0) {
+            container.innerHTML = '<p class="text-gray-400 col-span-full text-center py-8 font-medium text-sm">Nenhum discurso recente encontrado.</p>';
+            return;
+        }
+
+        container.innerHTML = discursos.map(d => {
+            const dataStr = d.dataHoraInicio || d.dataHoraFim || '';
+            const data = dataStr ? new Date(dataStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
+            const hora = dataStr ? new Date(dataStr).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+            const fase = d.faseEvento && d.faseEvento.titulo ? d.faseEvento.titulo : (d.tipoDiscurso || '');
+            const resumo = d.transcricao || d.sumario || d.keywords || 'Sem resumo disponivel.';
+            const resumoTruncado = resumo.length > 200 ? resumo.substring(0, 200) + '...' : resumo;
+            const url = d.urlTexto || d.urlInteiroTeor || '';
+
+            return `
+                <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-100">${data}</span>
+                            ${hora ? `<span class="text-xs text-gray-400 font-medium">${hora}</span>` : ''}
+                        </div>
+                        ${fase ? `<p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${fase}</p>` : ''}
+                        <p class="text-sm text-gray-700 leading-relaxed font-medium">${resumoTruncado}</p>
+                    </div>
+                    ${url ? `
+                        <a href="${url}" target="_blank" class="mt-3 text-xs text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 transition-colors">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Ler inteiro teor
+                        </a>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
     }
 }
 

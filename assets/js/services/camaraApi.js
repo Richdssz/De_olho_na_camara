@@ -40,14 +40,18 @@ class CamaraApiService {
     /**
      * Busca as despesas de cota parlamentar (CEAP) de um deputado para um ano específico.
      */
-    async buscarDespesas(id, ano) {
-        // Coleta o máximo de registros possível
-        const response = await this._fetch(`/deputados/${id}/despesas`, {
+    async buscarDespesas(id, ano, mes = null) {
+        // Coleta o maximo de registros possivel
+        const params = {
             ano: ano,
             itens: 100,
             ordem: 'ASC',
             ordenarPor: 'ano'
-        });
+        };
+        if (mes) {
+            params.mes = mes;
+        }
+        const response = await this._fetch(`/deputados/${id}/despesas`, params);
         return response.dados || [];
     }
 
@@ -181,6 +185,51 @@ class CamaraApiService {
     async buscarTemasProposicao(id) {
         const response = await this._fetch(`/proposicoes/${id}/temas`);
         return response.dados || [];
+    }
+
+    /**
+     * Busca os orgaos (comissoes, conselhos) dos quais um deputado e integrante.
+     */
+    async buscarOrgaosDeputado(id) {
+        const response = await this._fetch(`/deputados/${id}/orgaos`, { itens: 100 });
+        return response.dados || [];
+    }
+
+    /**
+     * Busca as frentes parlamentares das quais um deputado e integrante.
+     */
+    async buscarFrentesDeputado(id) {
+        const response = await this._fetch(`/deputados/${id}/frentes`);
+        return response.dados || [];
+    }
+
+    /**
+     * Busca o historico de mudancas no exercicio parlamentar de um deputado.
+     */
+    async buscarHistoricoDeputado(id) {
+        const response = await this._fetch(`/deputados/${id}/historico`);
+        return response.dados || [];
+    }
+
+    /**
+     * Busca os discursos feitos por um deputado em eventos diversos.
+     */
+    async buscarDiscursosDeputado(id, params = {}) {
+        const response = await this._fetch(`/deputados/${id}/discursos`, {
+            itens: 15,
+            ordenarPor: 'dataHoraInicio',
+            ordem: 'DESC',
+            ...params
+        });
+        return response.dados || [];
+    }
+
+    /**
+     * Busca informacoes detalhadas sobre uma proposicao especifica.
+     */
+    async buscarDetalheProposicao(id) {
+        const response = await this._fetch(`/proposicoes/${id}`);
+        return response.dados;
     }
 }
 
