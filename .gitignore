@@ -1,5 +1,6 @@
 *.md
 !README.md
 .env
+.vscode/
 node_modules/
 assets/js/core/config.js
