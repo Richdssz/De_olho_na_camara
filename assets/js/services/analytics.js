@@ -13,14 +13,13 @@ class AnalyticsService {
             e.descricaoTipo && e.descricaoTipo.toLowerCase().includes('deliberativa')
         );
 
-        // Estimativa razoável de sessões deliberativas no período (para 2026, ~35 sessões até o momento; 110 para anos cheios)
-        let totalEstimado = 110; 
-        if (ano === 2026) {
-            totalEstimado = 35;
-        }
-
         const presencas = deliberativos.length;
-        const rate = totalEstimado > 0 ? Math.min(100, Math.round((presencas / totalEstimado) * 100)) : 100;
+        
+        // Ajuste dinâmico do total estimado para evitar "75 de 35 sessões"
+        let totalEstimado = ano === 2026 ? 80 : 110; 
+        totalEstimado = Math.max(totalEstimado, presencas);
+
+        const rate = totalEstimado > 0 ? Math.round((presencas / totalEstimado) * 100) : 100;
 
         return {
             rate: rate,
@@ -83,7 +82,7 @@ class AnalyticsService {
      */
     calcularCoesaoPartidaria(votosDeputado, orientacoesVotacoes, siglaPartido) {
         if (!siglaPartido) {
-            return { coesao: 100, totalComOrientacao: 0, iguais: 0, detalhes: [], classificacao: this.classificarCoesao(100) };
+            return { coesao: 0, totalComOrientacao: 0, iguais: 0, detalhes: [], classificacao: { texto: 'Sem Partido', classe: 'bg-gray-50 text-gray-700 border-gray-200' } };
         }
 
         let totalVotadasComOrientacao = 0;
@@ -126,14 +125,21 @@ class AnalyticsService {
 
         const coesao = totalVotadasComOrientacao > 0 
             ? Math.round((votosIgualOrientacao / totalVotadasComOrientacao) * 100)
-            : 100;
+            : 0;
+
+        let classificacao = this.classificarCoesao(coesao);
+        if (totalVotadasComOrientacao > 0 && totalVotadasComOrientacao < 3) {
+            classificacao = { texto: 'Amostra Insuficiente', classe: 'bg-gray-50 text-gray-700 border-gray-200' };
+        } else if (totalVotadasComOrientacao === 0) {
+            classificacao = { texto: 'Sem Votos Recentes', classe: 'bg-gray-50 text-gray-700 border-gray-200' };
+        }
 
         return {
             coesao: coesao,
             totalComOrientacao: totalVotadasComOrientacao,
             iguais: votosIgualOrientacao,
             detalhes: detalhes,
-            classificacao: this.classificarCoesao(coesao)
+            classificacao: classificacao
         };
     }
 
@@ -221,6 +227,66 @@ class AnalyticsService {
         if (v.includes('abstenção') || v.includes('abstencao')) return 'abstencao';
         if (v.includes('obstrução') || v.includes('obstrucao')) return 'obstrucao';
         return null;
+    }
+
+    /**
+     * Avalia as métricas do deputado e atribui badges de gamificação.
+     * @param {Object} kpis - Objeto contendo presencaRate, gastoMedioMensal, coesaoRate, totalProposicoes
+     */
+    avaliarBadges(kpis) {
+        const badges = [];
+        const presenca = kpis.presencaRate || 0;
+        const gasto = kpis.gastoMedioMensal || 0;
+        const coesao = kpis.coesaoRate || 0;
+        const proposicoes = kpis.totalProposicoes || 0;
+
+        const MEDIA_NACIONAL_GASTO = 35000;
+
+        // 1. Assiduidade Máxima
+        if (presenca >= 95) {
+            badges.push({
+                id: 'assiduidade',
+                icone: 'fa-solid fa-calendar-check',
+                titulo: 'Presença de Ouro',
+                descricao: 'Compareceu a mais de 95% das sessões deliberativas.',
+                cor: 'bg-amber-100 text-amber-700 border-amber-300'
+            });
+        }
+
+        // 2. Responsabilidade Fiscal
+        if (gasto > 0 && gasto <= MEDIA_NACIONAL_GASTO * 0.5) {
+            badges.push({
+                id: 'economia',
+                icone: 'fa-solid fa-piggy-bank',
+                titulo: 'Economista',
+                descricao: 'Gastou menos da metade da cota parlamentar média nacional.',
+                cor: 'bg-emerald-100 text-emerald-700 border-emerald-300'
+            });
+        }
+
+        // 3. Fiel ao Partido
+        if (coesao >= 90) {
+            badges.push({
+                id: 'fidelidade',
+                icone: 'fa-solid fa-handshake-angle',
+                titulo: 'Leal ao Partido',
+                descricao: 'Votou de acordo com a orientação partidária em mais de 90% das vezes.',
+                cor: 'bg-blue-100 text-blue-700 border-blue-300'
+            });
+        }
+
+        // 4. Autor Prolífico
+        if (proposicoes >= 50) {
+            badges.push({
+                id: 'produtividade',
+                icone: 'fa-solid fa-pen-nib',
+                titulo: 'Autor Prolífico',
+                descricao: 'Apresentou um alto volume de proposições legislativas.',
+                cor: 'bg-purple-100 text-purple-700 border-purple-300'
+            });
+        }
+
+        return badges;
     }
 }
 

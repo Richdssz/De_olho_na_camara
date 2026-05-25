@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre - De Olho na Câmara</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-text {
+            background: linear-gradient(to right, #004D40, #00796B, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-bg {
+            background-image: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(0, 121, 107, 0.05), transparent 40%);
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-800 antialiased flex flex-col min-h-screen hero-bg">
+    
+    <!-- Navbar -->
+    <nav class="w-full bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='../index.html'">
+                <i class="fa-solid fa-eye text-2xl text-teal-600"></i>
+                <span class="text-xl font-bold tracking-tight text-gray-900">De Olho na <span class="text-teal-600">Câmara</span></span>
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-600">
+                <a href="#missao" class="hover:text-teal-600 transition-colors">Missão</a>
+                <a href="#dados" class="hover:text-teal-600 transition-colors">Fontes de Dados</a>
+                <a href="#creditos" class="hover:text-teal-600 transition-colors">Créditos</a>
+                <a href="#licenca" class="hover:text-teal-600 transition-colors">Licença</a>
+            </div>
+            <div>
+                <a href="dashboard.html" class="bg-gray-900 hover:bg-teal-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                    Painel <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="flex-1 flex flex-col items-center justify-center text-center px-6 py-20 lg:py-32">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-50 border border-teal-100 text-teal-700 text-sm font-semibold mb-8">
+            <i class="fa-solid fa-info-circle"></i> Transparência e Engajamento Cidadão
+        </div>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 max-w-4xl leading-tight">
+            Sobre o <span class="gradient-text">De Olho na Câmara</span>
+        </h1>
+        <p class="text-lg md:text-xl text-gray-500 mb-8 max-w-2xl font-light">
+            Uma plataforma democrática e cidadã para acompanhar a atuação legislativa com transparência e inteligência analítica.
+        </p>
+    </header>
+
+    <!-- Missão Section -->
+    <section id="missao" class="py-24 bg-gray-50 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="mb-16">
+                    <h2 class="text-4xl font-extrabold text-gray-900 mb-6">Nossa Missão</h2>
+                    <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                        O <strong>De Olho na Câmara</strong> existe para democratizar o acesso à informação legislativa, transformando dados brutos em insights claros que empoderem o cidadão brasileiro no exercício de seu direito de fiscalização e controle social.
+                    </p>
+                    <p class="text-lg text-gray-600 leading-relaxed mb-6">
+                        Acreditamos que toda pessoa deve ser capaz de responder perguntas fundamentais sobre seus representantes — sem necessidade de acesso privilegiado, sem jargão político e sem complicações técnicas.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="w-14 h-14 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-2xl mb-4">
+                            <i class="fa-solid fa-eye"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Transparência Total</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Todos os dados provêm de APIs públicas oficiais. Nenhuma informação é oculta, manipulada ou fabricada.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-4">
+                            <i class="fa-solid fa-hand-holding-heart"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Engajamento Cidadão</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Ferramentas intuitivas para que qualquer brasileiro possa monitorar, avaliar e participar da gestão legislativa.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="w-14 h-14 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center text-2xl mb-4">
+                            <i class="fa-solid fa-gears"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Análise Inteligente</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Motores automáticos que cruzam votações, gastos e coesão partidária para revelar padrões ocultos.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-4">
+                            <i class="fa-solid fa-code"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Código Aberto</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Desenvolvido em Vanilla JS, sem frameworks monolíticos. Qualquer desenvolvedor pode contribuir.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fontes de Dados Section -->
+    <section id="dados" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Fontes de Dados Oficiais</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Todos os dados provêm de repositórios públicos de domínio público ou sob licença aberta.</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="bg-gray-50 p-8 rounded-2xl border border-gray-100 hover:shadow-md transition">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-teal-100 text-teal-700 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0">
+                            🏛️
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Câmara dos Deputados - API Oficial</h3>
+                            <p class="text-gray-600 mb-3">
+                                <strong>Endpoint:</strong> <code class="bg-white px-2 py-1 rounded text-sm text-teal-600">https://dadosabertos.camara.leg.br/api/v2</code>
+                            </p>
+                            <p class="text-gray-600 mb-3">
+                                Dados legislativos em tempo real: deputados, partidos, votações, frequências, gastos parlamentares (CEAP) e proposições.
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                <strong>Licença:</strong> CC BY 4.0 (Creative Commons Atribuição 4.0)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-2xl border border-gray-100 hover:shadow-md transition">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0">
+                            📊
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Ministério da Educação - Dados Abertos</h3>
+                            <p class="text-gray-600 mb-3">
+                                Informações sobre instituições educacionais, matrículas, performance estudantil e indicadores de qualidade.
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                <strong>Licença:</strong> CC BY 4.0
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-2xl border border-gray-100 hover:shadow-md transition">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0">
+                            🏛️
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Instituto Nacional de Estudos e Pesquisas (INEP)</h3>
+                            <p class="text-gray-600 mb-3">
+                                Censos educacionais, Índice de Desenvolvimento da Educação Básica (IDEB) e indicadores de qualidade escolar por região.
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                <strong>Licença:</strong> Domínio Público
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-8 rounded-2xl border border-gray-100 hover:shadow-md transition">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-violet-100 text-violet-700 rounded-lg flex items-center justify-center font-bold text-lg flex-shrink-0">
+                            📈
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">IBGE - Censo Demográfico</h3>
+                            <p class="text-gray-600 mb-3">
+                                Dados socioeconômicos, população, distribuição geográfica e perfil demográfico das regiões do Brasil.
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                <strong>Licença:</strong> CC BY 4.0
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Créditos Section -->
+    <section id="creditos" class="py-24 bg-gray-50 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Créditos Acadêmicos</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Desenvolvido com apoio institucional e contribuições acadêmicas.</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="mb-4">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-teal-50 rounded-2xl text-teal-600 text-2xl mb-4">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">Universidade Católica de Pernambuco</h3>
+                        <p class="text-sm text-teal-600 font-semibold mt-1">UNICAP</p>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed mb-4">
+                        Instituição parceira que forneceu orientação técnica, infraestrutura acadêmica e validação metodológica para o projeto.
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        <strong>Departamento:</strong> Ciência da Computação e Engenharia de Software
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <div class="mb-4">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-50 rounded-2xl text-emerald-600 text-2xl mb-4">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">Equipe de Desenvolvimento</h3>
+                        <p class="text-sm text-emerald-600 font-semibold mt-1">Voluntários & Colaboradores</p>
+                    </div>
+                    <p class="text-gray-600 leading-relaxed mb-4">
+                        Desenvolvedores apaixonados por tecnologia e transparência política, contribuindo código, testes e revisões em padrão open-source.
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        <strong>Contribuir:</strong> <a href="https://github.com" class="text-teal-600 hover:text-teal-700 font-semibold transition">GitHub</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="max-w-4xl mx-auto mt-12 p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Inspiração e Referências</h3>
+                <ul class="space-y-3 text-gray-600">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-check text-teal-600 mt-1 flex-shrink-0"></i>
+                        <span><strong>Base Institucional:</strong> Modelos de transparência de câmaras legislativas em países democráticos.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-check text-teal-600 mt-1 flex-shrink-0"></i>
+                        <span><strong>Metodologia Analítica:</strong> Pesquisas em ciência política e análise de coesão partidária.</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-check text-teal-600 mt-1 flex-shrink-0"></i>
+                        <span><strong>Comunidade Open-Source:</strong> Princípios e melhores práticas do movimento software livre.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Licença Section -->
+    <section id="licenca" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Licença de Uso</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Licenças aplicáveis e direitos de propriedade intelectual.</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto space-y-8">
+                <div class="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl border border-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Código-Fonte</h3>
+                    <div class="flex items-start gap-4 mb-6">
+                        <div class="w-12 h-12 bg-white border-2 border-teal-600 rounded-lg flex items-center justify-center font-bold text-teal-600 flex-shrink-0">
+                            MIT
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-gray-600 mb-3">
+                                O código-fonte do <strong>De Olho na Câmara</strong> é licenciado sob a <strong>Licença MIT</strong>, permitindo uso livre, modificação e distribuição, desde que o aviso de copyright seja mantido.
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                Copyright © 2026 — De Olho na Câmara. Todos os direitos reservados.
+                            </p>
+                        </div>
+                    </div>
+                    <a href="#" class="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition">
+                        Ver licença completa <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+
+                <div class="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl border border-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Dados</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-600 mb-2">
+                                Todos os dados legislativos e educacionais utilizados nesta plataforma são obtidos de <strong>repositórios públicos</strong> mantidos por órgãos governamentais e estão disponíveis sob:
+                            </p>
+                            <div class="mt-3 space-y-2">
+                                <div class="flex items-center gap-3 text-sm text-gray-600">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 text-teal-600 text-xs font-bold">✓</span>
+                                    <span><strong>CC BY 4.0</strong> (Creative Commons Atribuição 4.0) — Câmara dos Deputados, INEP, IBGE, MEC</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-sm text-gray-600">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 text-teal-600 text-xs font-bold">✓</span>
+                                    <span><strong>Domínio Público</strong> — Dados centenários do IBGE e INEP</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-4">
+                            <strong>Importante:</strong> Nenhum dado é alterado, fabricado ou oriundo de fontes privadas.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl border border-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Uso Comercial & Atribuição</h3>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-circle-check text-teal-600 mt-1 flex-shrink-0"></i>
+                            <span>✅ <strong>Permitido:</strong> Usar o código em projetos comerciais</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-circle-check text-teal-600 mt-1 flex-shrink-0"></i>
+                            <span>✅ <strong>Permitido:</strong> Modificar e criar obras derivadas</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-circle-check text-teal-600 mt-1 flex-shrink-0"></i>
+                            <span>✅ <strong>Permitido:</strong> Distribuir gratuitamente ou com valor agregado</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-circle-xmark text-red-500 mt-1 flex-shrink-0"></i>
+                            <span>❌ <strong>Obrigatório:</strong> Manter aviso de copyright e licença</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-circle-xmark text-red-500 mt-1 flex-shrink-0"></i>
+                            <span>❌ <strong>Obrigatório:</strong> Atribuir crédito aos dados originais (Câmara, INEP, IBGE)</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-blue-50 border-l-4 border-blue-600 p-6 rounded">
+                    <p class="text-blue-900 text-sm leading-relaxed">
+                        <strong>Dúvidas sobre licença?</strong> Consulte os documentos oficiais CC BY 4.0 em <a href="https://creativecommons.org" class="underline text-blue-700 font-semibold">creativecommons.org</a> ou entre em contato através de nossas redes sociais.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-24 bg-gradient-to-r from-teal-600 to-teal-800 text-white">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h2 class="text-4xl font-extrabold mb-6">Pronto para Fiscalizar?</h2>
+            <p class="text-lg text-teal-100 mb-8 max-w-2xl mx-auto">
+                Acesse o painel de transparência e comece a acompanhar a atuação legislativa em tempo real.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="dashboard.html" class="bg-white hover:bg-gray-100 text-teal-700 px-8 py-4 rounded-full text-lg font-bold transition-all shadow-lg hover:-translate-y-1 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-chart-pie"></i> Acessar Dashboard
+                </a>
+                <a href="../index.html" class="bg-teal-700 hover:bg-teal-900 border-2 border-white text-white px-8 py-4 rounded-full text-lg font-bold transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar ao Início
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-10 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-eye text-xl text-teal-400"></i>
+                <span class="text-lg font-bold text-white tracking-tight">De Olho na Câmara</span>
+            </div>
+            <p class="text-gray-500 text-sm">Desenvolvido com foco na transparência e inovação política.</p>
+            <div class="flex gap-4">
+                <a href="https://github.com" target="_blank" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="dashboard.html" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -115,6 +115,22 @@ class PerfilDeputadoView {
         if (proposicoesEl) proposicoesEl.textContent = proposicoes;
     }
 
+    renderizarBadges(badges) {
+        const container = document.getElementById('badges-container');
+        if (!container) return;
+        
+        if (!badges || badges.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        container.innerHTML = badges.map(b => `
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border ${b.cor} text-sm font-semibold shadow-sm cursor-help transition-transform hover:scale-105" title="${b.descricao}">
+                <i class="${b.icone}"></i> ${b.titulo}
+            </div>
+        `).join('');
+    }
+
     renderizarAnomalias(anomaliaInfo) {
         const banner = document.getElementById('anomalia-banner');
         if (!banner) return;
@@ -518,7 +534,7 @@ class PerfilDeputadoView {
                         </span>
                         <span class="text-xs text-gray-400 font-semibold">${dataFormatada}</span>
                     </div>
-                    <p class="text-sm font-semibold text-gray-900 mb-3 line-clamp-3 leading-relaxed" title="${p.ementa}">
+                    <p class="text-sm font-semibold text-gray-900 mb-3 line-clamp-3 leading-relaxed cursor-pointer hover:text-teal-600 transition prop-title-click" data-id="${p.id}" title="Clique para ler a ementa completa">
                         ${p.ementa}
                     </p>
                 </div>
@@ -549,6 +565,16 @@ class PerfilDeputadoView {
                     const id = parseInt(e.currentTarget.getAttribute('data-id'));
                     const voto = e.currentTarget.getAttribute('data-voto');
                     this._onVotoCallback(id, voto, e.currentTarget);
+                });
+            });
+        }
+
+        if (this._onAbrirModalCallback) {
+            const titles = container.querySelectorAll('.prop-title-click');
+            titles.forEach(t => {
+                t.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                    this._onAbrirModalCallback(id);
                 });
             });
         }
@@ -594,6 +620,80 @@ class PerfilDeputadoView {
                 }
             });
         });
+    }
+
+    onFiltroProposicaoChange(callback) {
+        const selectTipo = document.getElementById('filtro-tipo-proposicao');
+        const selectAno = document.getElementById('filtro-ano-proposicao');
+        
+        const handler = () => {
+            const tipo = selectTipo ? selectTipo.value : '';
+            const ano = selectAno ? selectAno.value : '';
+            callback(tipo, ano);
+        };
+
+        if (selectTipo) selectTipo.addEventListener('change', handler);
+        if (selectAno) selectAno.addEventListener('change', handler);
+    }
+
+    onAbrirModalProposicaoClick(callback) {
+        this._onAbrirModalCallback = callback;
+    }
+
+    abrirModalProposicao(p, votoInfo) {
+        const modal = document.getElementById('proposicao-modal');
+        if (!modal) return;
+        
+        document.getElementById('modal-prop-sigla').textContent = `${p.siglaTipo} ${p.numero}/${p.ano}`;
+        document.getElementById('modal-prop-ementa').textContent = p.ementa;
+        
+        const dateStr = p.dataEnvio || p.dataApresentacao || p.data || '';
+        document.getElementById('modal-prop-data').textContent = dateStr ? new Date(dateStr).toLocaleDateString('pt-BR') : '-';
+        document.getElementById('modal-prop-tema').textContent = p.ementa.length > 50 ? 'Geral' : '-';
+        document.getElementById('modal-prop-link').href = `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${p.id}`;
+
+        this.atualizarTermometroModal(p.id, votoInfo);
+
+        modal.classList.remove('hidden');
+
+        const fechar = document.getElementById('close-proposicao-modal');
+        const fecharFn = () => modal.classList.add('hidden');
+        fechar.onclick = fecharFn;
+        modal.onclick = (e) => { if (e.target === modal) fecharFn(); };
+    }
+
+    atualizarTermometroModal(proposicaoId, votoInfo) {
+        const termo = document.getElementById('modal-prop-termometro');
+        if (!termo) return;
+
+        const apoios = votoInfo.apoios;
+        const rejeicoes = votoInfo.rejeicoes;
+        const meuVoto = votoInfo.meuVoto;
+
+        let btnApoiarClass = 'bg-white text-green-700 border-green-200 hover:bg-green-50';
+        if (meuVoto === "Apoio") btnApoiarClass = 'bg-green-600 text-white border-green-600 hover:bg-green-700';
+
+        let btnRejeitarClass = 'bg-white text-red-700 border-red-200 hover:bg-red-50';
+        if (meuVoto === "Rejeito") btnRejeitarClass = 'bg-red-600 text-white border-red-600 hover:bg-red-700';
+
+        termo.innerHTML = `
+            <button class="btn-votar-modal flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all border ${btnApoiarClass} shadow-sm" data-id="${proposicaoId}" data-voto="Apoio">
+                <i class="fa-solid fa-thumbs-up"></i> Apoiar <span class="bg-white/80 text-gray-700 px-2.5 py-0.5 rounded-full text-xs ml-1" id="modal-apoio-count">${apoios}</span>
+            </button>
+            <button class="btn-votar-modal flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all border ${btnRejeitarClass} shadow-sm" data-id="${proposicaoId}" data-voto="Rejeito">
+                <i class="fa-solid fa-thumbs-down"></i> Rejeitar <span class="bg-white/80 text-gray-700 px-2.5 py-0.5 rounded-full text-xs ml-1" id="modal-rejeito-count">${rejeicoes}</span>
+            </button>
+        `;
+
+        if (this._onVotoCallback) {
+            termo.querySelectorAll('.btn-votar-modal').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                    const voto = e.currentTarget.getAttribute('data-voto');
+                    this._onVotoCallback(id, voto, e.currentTarget, true); // true = isFromModal
+                });
+            });
+        }
     }
 }
 

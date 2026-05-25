@@ -7,6 +7,8 @@ class PerfilDeputadoController {
         this.deputadoIdGlobal = null;
         this.deputadoNomeGlobal = "";
         this.notaSelecionada = 0;
+        this.proposicoesOriginais = [];
+        this.votosMapLocal = {};
     }
 
     async init() {
@@ -28,6 +30,8 @@ class PerfilDeputadoController {
         this.view.onEstrelaClick(this.handleEstrelaClick.bind(this));
         this.view.onSalvarAvaliacaoClick(this.handleSalvarAvaliacao.bind(this));
         this.view.onVotarProposicaoClick(this.handleVotarProposicao.bind(this));
+        this.view.onFiltroProposicaoChange(this.handleFiltroProposicao.bind(this));
+        this.view.onAbrirModalProposicaoClick(this.handleAbrirModalProposicao.bind(this));
 
         await this.carregarDadosDeputado(this.deputadoIdGlobal);
     }
@@ -58,6 +62,8 @@ class PerfilDeputadoController {
                 window.camaraApi.buscarProposicoesAutor(id).catch(() => []),
                 window.camaraApi.buscarVotacoesRecentes(15).catch(() => [])
             ]);
+
+            this.proposicoesOriginais = proposicoes || [];
 
             // 3. Analytics
             const analisePresenca = window.analytics.calcularTaxaPresenca(eventos, anoCorrente);
@@ -99,22 +105,23 @@ class PerfilDeputadoController {
                 coesaoRate: analiseCoesao.coesao
             });
 
+            const badges = window.analytics.avaliarBadges({
+                presencaRate: analisePresenca.rate,
+                gastoMedioMensal: analiseGastos.media,
+                coesaoRate: analiseCoesao.coesao,
+                totalProposicoes: totalProposicoes
+            });
+
             // 5. Renderizar na View
             this.view.renderizarPainelKPIs(analisePresenca, analiseGastos, analiseCoesao, totalProposicoes);
+            this.view.renderizarBadges(badges);
             this.view.renderizarAnomalias(analiseAnomalias);
             this.view.renderizarTabelaVotacoes(votosDeputadoMapeados, orientacoesMapeadas, siglaPartido);
             this.view.renderizarGraficos(despesas, eventos);
 
             // 6. Termômetro de Leis - Carregar votos comunitários para as proposições
             const propToShow = proposicoes.slice(0, 6);
-            const votosMap = {};
-            await Promise.all(propToShow.map(async (p) => {
-                const resp = await window.TermometroModel.buscarVotosProposicao(p.id);
-                if (resp.success) {
-                    votosMap[p.id] = resp.data;
-                }
-            }));
-            this.view.renderizarProposicoes(propToShow, votosMap);
+            await this.renderizarProposicoesAtualizadas(propToShow);
 
             this.view.mostrarConteudo();
 
@@ -248,23 +255,50 @@ class PerfilDeputadoController {
             await this.carregarAvaliacoes(this.deputadoIdGlobal);
             // Recarrega as proposições para atualizar o voto do usuário atual
             try {
-                const propResp = await window.camaraApi.buscarProposicoesAutor(this.deputadoIdGlobal).catch(() => []);
-                const propToShow = propResp.slice(0, 6);
-                const votosMap = {};
-                await Promise.all(propToShow.map(async (p) => {
-                    const resp = await window.TermometroModel.buscarVotosProposicao(p.id);
-                    if (resp.success) {
-                        votosMap[p.id] = resp.data;
-                    }
-                }));
-                this.view.renderizarProposicoes(propToShow, votosMap);
+                const propToShow = this.proposicoesOriginais.slice(0, 6);
+                await this.renderizarProposicoesAtualizadas(propToShow);
             } catch (err) {
                 console.error("Erro ao recarregar proposições no login/logout:", err);
             }
         }
     }
 
-    async handleVotarProposicao(proposicaoId, voto, btn) {
+    async renderizarProposicoesAtualizadas(proposicoes) {
+        const votosMap = {};
+        await Promise.all(proposicoes.map(async (p) => {
+            const resp = await window.TermometroModel.buscarVotosProposicao(p.id);
+            if (resp.success) {
+                votosMap[p.id] = resp.data;
+            }
+        }));
+        this.votosMapLocal = { ...this.votosMapLocal, ...votosMap };
+        this.view.renderizarProposicoes(proposicoes, votosMap);
+    }
+
+    async handleFiltroProposicao(tipo, ano) {
+        let filtradas = this.proposicoesOriginais || [];
+        if (tipo) {
+            filtradas = filtradas.filter(p => p.siglaTipo === tipo);
+        }
+        if (ano) {
+            filtradas = filtradas.filter(p => parseInt(p.ano) === parseInt(ano));
+        }
+        
+        const container = document.getElementById('proposicoes-container');
+        if (container) container.innerHTML = '<p class="text-gray-500 col-span-full text-center py-10 font-medium"><i class="fa-solid fa-circle-notch fa-spin text-teal-600 mb-2 text-2xl"></i><br>Filtrando proposições...</p>';
+
+        const propToShow = filtradas.slice(0, 6);
+        await this.renderizarProposicoesAtualizadas(propToShow);
+    }
+
+    handleAbrirModalProposicao(proposicaoId) {
+        const p = (this.proposicoesOriginais || []).find(x => x.id === proposicaoId);
+        if (!p) return;
+        const votoInfo = (this.votosMapLocal || {})[p.id] || { apoios: 0, rejeicoes: 0, meuVoto: null };
+        this.view.abrirModalProposicao(p, votoInfo);
+    }
+
+    async handleVotarProposicao(proposicaoId, voto, btn, isFromModal) {
         if (!window.Back4AppService || !window.Back4AppService.getCurrentUser()) {
             // Abre o modal de login automaticamente
             const authModal = document.getElementById('auth-modal');
@@ -291,7 +325,11 @@ class PerfilDeputadoController {
                 const totalResp = await window.TermometroModel.buscarVotosProposicao(proposicaoId);
                 if (totalResp.success) {
                     const { apoios, rejeicoes, meuVoto } = totalResp.data;
+                    if (this.votosMapLocal) this.votosMapLocal[proposicaoId] = totalResp.data;
                     this.view.atualizarVotosCard(proposicaoId, apoios, rejeicoes, meuVoto);
+                    if (isFromModal) {
+                        this.view.atualizarTermometroModal(proposicaoId, totalResp.data);
+                    }
                 }
             } else {
                 alert("Erro ao computar voto: " + (resp.error || "Tente novamente."));

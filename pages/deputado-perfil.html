@@ -119,6 +119,9 @@
                         </div>
                     </div>
 
+                    <!-- Vitrine de Badges (Gamificação) -->
+                    <div id="badges-container" class="flex flex-wrap gap-2 mt-6 empty:mt-0"></div>
+
                     <!-- Botão Radar -->
                     <div class="mt-6 flex gap-3 no-print">
                         <button id="btn-radar-perfil" class="flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 px-6 rounded-lg text-sm font-semibold transition-all">
@@ -251,10 +254,25 @@
 
             <!-- Seção de Projetos de Lei e Termômetro (Votações da Comunidade) -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 print-card">
-                <div class="flex items-center justify-between mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                     <div>
                         <h3 class="text-lg font-bold text-gray-900">Proposições & Termômetro de Leis</h3>
                         <p class="text-sm text-gray-500">Projetos de lei de autoria do parlamentar e a opinião dos cidadãos</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <select id="filtro-tipo-proposicao" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
+                            <option value="">Todos os Tipos</option>
+                            <option value="PL">Projetos de Lei (PL)</option>
+                            <option value="PEC">PEC</option>
+                            <option value="REQ">Requerimentos (REQ)</option>
+                        </select>
+                        <select id="filtro-ano-proposicao" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500 transition-colors">
+                            <option value="">Todos os Anos</option>
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
                     </div>
                 </div>
                 <!-- Container das proposições -->
@@ -336,6 +354,51 @@
                     <button type="button" id="btn-signup" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-2xl font-medium transition-colors">Criar Conta</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Pop da Lei -->
+    <div id="proposicao-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center backdrop-blur-sm p-4 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-[650px] max-w-full flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center p-6 border-b border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced text-teal-600"></i>
+                    <span id="modal-prop-sigla">Carregando...</span>
+                </h3>
+                <button id="close-proposicao-modal" class="text-gray-400 hover:text-gray-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 bg-gray-50/50">
+                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm mb-4">
+                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Ementa Oficial</h4>
+                    <p id="modal-prop-ementa" class="text-gray-800 text-sm md:text-base leading-relaxed font-medium"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-5">
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <span class="block text-xs font-bold text-gray-400 uppercase mb-1">Apresentação</span>
+                        <span id="modal-prop-data" class="font-semibold text-gray-800 text-sm"></span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                        <span class="block text-xs font-bold text-gray-400 uppercase mb-1">Tema Principal</span>
+                        <span id="modal-prop-tema" class="font-semibold text-gray-800 text-sm"></span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                    <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 text-center">Termômetro Popular</h4>
+                    <div id="modal-prop-termometro" class="flex justify-center gap-4">
+                        <!-- Botões injetados dinamicamente -->
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t border-gray-100 rounded-b-2xl text-center">
+                <a id="modal-prop-link" href="#" target="_blank" class="text-sm text-teal-600 hover:text-teal-700 font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver andamento completo no site da Câmara
+                </a>
+            </div>
         </div>
     </div>
 
