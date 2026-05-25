@@ -84,12 +84,28 @@
 
         <!-- Filtros do Gráfico -->
         <section class="bg-white border-b border-gray-200 px-10 py-5">
-            <div class="flex items-end justify-between gap-4">
-                <div class="flex gap-4 items-center">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+                <div class="flex flex-wrap gap-4 items-center">
+                    <!-- Partido -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Destaque por Partido</label>
-                        <select id="filtro-partido" class="w-64 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Filtrar Partido</label>
+                        <select id="filtro-partido" class="w-48 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
                             <option value="">Todos os Partidos</option>
+                        </select>
+                    </div>
+                    <!-- Deputado -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Filtrar Deputado</label>
+                        <select id="filtro-deputado" class="w-64 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                            <option value="">Todos os Deputados</option>
+                        </select>
+                    </div>
+                    <!-- Modo de Exibição -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Modo do Gráfico</label>
+                        <select id="modo-exibicao" class="w-48 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                            <option value="destacar">Destacar (Esmaecer outros)</option>
+                            <option value="isolar">Isolar (Ocultar outros)</option>
                         </select>
                     </div>
                 </div>

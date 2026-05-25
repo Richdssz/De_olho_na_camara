@@ -2,8 +2,13 @@ class EspectroController {
     constructor() {
         this.view = new EspectroView('main');
         this.dadosDeputados = [];
+        this.partidoDestaque = '';
+        this.deputadoDestaque = '';
+        this.modoExibicao = 'destacar';
 
         this.view.onPartidoChange = this.handlePartidoChange.bind(this);
+        this.view.onDeputadoChange = this.handleDeputadoChange.bind(this);
+        this.view.onModoChange = this.handleModoChange.bind(this);
         this.view.onRecarregar = this.loadData.bind(this);
     }
 
@@ -25,7 +30,8 @@ class EspectroController {
             const resultado = await DeputadoModel.listar();
             if (resultado.success) {
                 this.dadosDeputados = this.gerarAnaliseIdeologicaSimulada(resultado.data);
-                this.view.renderizarGrafico(this.dadosDeputados);
+                this.view.renderizarSelectDeputados(this.dadosDeputados);
+                this.atualizarGrafico();
             }
         } catch (error) {
             console.error('Erro ao carregar dados do espectro:', error);
@@ -35,7 +41,27 @@ class EspectroController {
     }
 
     handlePartidoChange(siglaPartido) {
-        this.view.renderizarGrafico(this.dadosDeputados, siglaPartido);
+        this.partidoDestaque = siglaPartido;
+        this.atualizarGrafico();
+    }
+
+    handleDeputadoChange(idDeputado) {
+        this.deputadoDestaque = idDeputado;
+        this.atualizarGrafico();
+    }
+
+    handleModoChange(modo) {
+        this.modoExibicao = modo;
+        this.atualizarGrafico();
+    }
+
+    atualizarGrafico() {
+        this.view.renderizarGrafico(
+            this.dadosDeputados,
+            this.partidoDestaque,
+            this.deputadoDestaque,
+            this.modoExibicao
+        );
     }
 
     gerarAnaliseIdeologicaSimulada(deputados) {
