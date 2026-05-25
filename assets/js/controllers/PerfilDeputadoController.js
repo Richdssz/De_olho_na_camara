@@ -59,11 +59,11 @@ class PerfilDeputadoController {
             // 2. Coletando dados complementares
             const anoCorrente = this.anoAnalise;
             
-            const [despesas, eventosDeputado, proposicoes, votosDeputadoMapeados, sessoesPlenario] = await Promise.all([
+            const [despesas, eventosDeputado, proposicoes, votacoesRecentes, sessoesPlenario] = await Promise.all([
                 window.camaraApi.buscarDespesas(id, anoCorrente).catch(() => []),
                 window.camaraApi.buscarEventos(id, `${anoCorrente}-01-01`, `${anoCorrente}-12-31`).catch(() => []),
                 window.camaraApi.buscarProposicoesAutor(id).catch(() => []),
-                window.camaraApi.buscarVotacoesDeputado(id, 15).catch(() => []),
+                window.camaraApi.buscarVotacoesRecentes(15).catch(() => []),
                 window.camaraApi.buscarSessoesOrgao(114, `${anoCorrente}-01-01`, `${anoCorrente}-12-31`).catch(() => []) // 114 = Plenário da Câmara
             ]);
 
@@ -76,27 +76,33 @@ class PerfilDeputadoController {
             const totalProposicoes = proposicoes.length;
 
             // 4. Votos Nominais
+            const votosDeputadoMapeados = [];
             const orientacoesMapeadas = {};
 
-            await Promise.all(votosDeputadoMapeados.map(async (v) => {
+            await Promise.all(votacoesRecentes.map(async (v) => {
                 try {
-                    // Como a API já retornou as votações do deputado, a id da votação é v.idVotacao
-                    const orientacoesList = await window.camaraApi.buscarOrientacoesVotacao(v.idVotacao || v.votacao?.id);
-                    orientacoesMapeadas[v.idVotacao || v.votacao?.id] = orientacoesList;
+                    const [votosList, orientacoesList] = await Promise.all([
+                        window.camaraApi.buscarVotosVotacao(v.id).catch(() => []),
+                        window.camaraApi.buscarOrientacoesVotacao(v.id).catch(() => [])
+                    ]);
+
+                    const votoDoDeputado = (votosList || []).find(vote => vote.deputado && vote.deputado.id === id);
+                    const tipoVoto = votoDoDeputado ? votoDoDeputado.tipoVoto : "Ausente";
+
+                    votosDeputadoMapeados.push({
+                        votacaoId: v.id,
+                        descricao: v.descricao || "Votação em Plenário",
+                        data: v.dataHoraRegistro || v.data,
+                        voto: tipoVoto
+                    });
+
+                    orientacoesMapeadas[v.id] = orientacoesList || [];
                 } catch (err) {
-                    console.error(`Erro buscando orientações da votação:`, err);
+                    console.error(`Erro buscando votos/orientações da votação ${v.id}:`, err);
                 }
             }));
 
-            // Remapeando o array retornado por buscarVotacoesDeputado para manter a compatibilidade com a view e motor
-            const votosFormatoMotor = votosDeputadoMapeados.map(v => ({
-                votacaoId: v.idVotacao || v.votacao?.id,
-                descricao: v.proposicaoObjeto || v.votacao?.descricao || "Votação em Plenário",
-                data: v.dataHoraVoto || v.votacao?.dataHoraRegistro,
-                voto: v.voto
-            }));
-
-            const analiseCoesao = window.analytics.calcularCoesaoPartidaria(votosFormatoMotor, orientacoesMapeadas, siglaPartido);
+            const analiseCoesao = window.analytics.calcularCoesaoPartidaria(votosDeputadoMapeados, orientacoesMapeadas, siglaPartido);
             
             const analiseAnomalias = window.analytics.detectarAnomalias({
                 presencaRate: analisePresenca.rate,
@@ -115,7 +121,7 @@ class PerfilDeputadoController {
             this.view.renderizarPainelKPIs(analisePresenca, analiseGastos, analiseCoesao, totalProposicoes);
             this.view.renderizarBadges(badges);
             this.view.renderizarAnomalias(analiseAnomalias);
-            this.view.renderizarTabelaVotacoes(votosFormatoMotor, orientacoesMapeadas, siglaPartido);
+            this.view.renderizarTabelaVotacoes(votosDeputadoMapeados, orientacoesMapeadas, siglaPartido);
             this.view.renderizarGraficos(despesas, eventosDeputado, sessoesPlenario);
 
             // 5.1 Atualizar Links de Transparência
