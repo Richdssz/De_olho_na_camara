@@ -6,6 +6,8 @@
     <title>Perfil do Partido - De Olho na Câmara</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Parse SDK -->
     <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
     <!-- FontAwesome -->
@@ -83,6 +85,103 @@
                         <span id="partido-coesao-badge" class="inline-block mt-0.5 px-3 py-0.5 rounded-full text-sm font-bold border">-</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Filtro de Periodo Global para o Partido -->
+            <div class="flex justify-end items-center gap-3 bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm">
+                <span class="text-sm font-semibold text-gray-500 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-teal-600"></i> Ano de Analise:
+                </span>
+                <select id="filtro-ano-partido" class="bg-gray-50 border border-gray-200 text-gray-700 font-bold px-4 py-1.5 rounded-xl outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all cursor-pointer">
+                    <option value="2026" selected>2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                </select>
+            </div>
+
+            <!-- Grid de Informacoes Extras do Partido -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Coluna 1: Wikipedia & Ideologia -->
+                <div class="flex flex-col gap-6">
+                    <!-- Wikipedia Card -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col h-full">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-5">
+                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <i class="fa-brands fa-wikipedia-w text-teal-600"></i> Sobre o Partido (Wikipedia)
+                            </h3>
+                            <a id="wiki-link" href="#" target="_blank" class="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1">
+                                Artigo Completo <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                        <div class="space-y-5 flex-1">
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Espectro Politico</p>
+                                <span id="partido-espectro" class="inline-block px-3 py-1 bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-200 text-sm">
+                                    Carregando...
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Ideologia</p>
+                                <p id="partido-ideologia" class="text-sm text-gray-700 font-medium bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                    Carregando...
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Resumo Historico</p>
+                                <p id="partido-resumo-wiki" class="text-sm text-gray-600 leading-relaxed line-clamp-[8] overflow-y-auto" style="max-height: 180px;">
+                                    Carregando...
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna 2: Financas da Bancada & Grafico de Espectro -->
+                <div class="flex flex-col gap-6">
+                    <!-- Finance Panel Card -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col">
+                        <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-5">
+                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <i class="fa-solid fa-money-bill-wave text-teal-600"></i> Despesas Consolidadas da Bancada
+                            </h3>
+                            <span id="ano-financeiro-display" class="bg-teal-50 text-teal-700 text-xs font-bold px-2.5 py-1 rounded-full border border-teal-100">
+                                Ano: 2026
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Total Gasto</p>
+                                <p id="total-gasto-bancada" class="text-lg md:text-xl font-black text-gray-800 mt-1">R$ 0,00</p>
+                            </div>
+                            <div class="bg-gray-50 px-4 py-3 rounded-xl border border-gray-100">
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Media por Deputado</p>
+                                <p id="media-gasto-bancada" class="text-lg md:text-xl font-black text-gray-800 mt-1">R$ 0,00</p>
+                            </div>
+                        </div>
+
+                        <!-- Doughnut Chart Canvas -->
+                        <div class="relative w-full h-48 flex items-center justify-center">
+                            <canvas id="financeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Espectro Ideologico Scatter Plot -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col">
+                        <div class="border-b border-gray-100 pb-4 mb-4">
+                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <i class="fa-solid fa-compass text-teal-600"></i> Espectro Ideologico do Partido
+                            </h3>
+                            <p class="text-xs text-gray-500 mt-1">Mapeamento da coesao partidaria (Eixo X) e alinhamento com o governo (Eixo Y)</p>
+                        </div>
+                        <div class="relative w-full h-64">
+                            <canvas id="espectroInternoChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Members List Section -->

@@ -14,6 +14,41 @@ class PartidoPerfilView {
         this.membrosCount = document.getElementById('partido-membros-count');
         this.coesaoBadge = document.getElementById('partido-coesao-badge');
         this.grid = document.getElementById('membros-grid');
+
+        // Novos elementos da Wikipedia
+        this.wikiEspectro = document.getElementById('partido-espectro');
+        this.wikiIdeologia = document.getElementById('partido-ideologia');
+        this.wikiResumo = document.getElementById('partido-resumo-wiki');
+        this.wikiLink = document.getElementById('wiki-link');
+
+        // Novos elementos Financeiros
+        this.filtroAno = document.getElementById('filtro-ano-partido');
+        this.totalGastoBancada = document.getElementById('total-gasto-bancada');
+        this.mediaGastoBancada = document.getElementById('media-gasto-bancada');
+        this.anoFinanceiroDisplay = document.getElementById('ano-financeiro-display');
+        this.canvasFinance = document.getElementById('financeChart');
+
+        // Grafico de espectro ideologico interno
+        this.canvasEspectroInterno = document.getElementById('espectroInternoChart');
+
+        // Instancias de Chart.js
+        this.financeChartInstance = null;
+        this.espectroChartInstance = null;
+
+        // Callbacks
+        this.onFiltroAnoChange = null;
+
+        this._bindEvents();
+    }
+
+    _bindEvents() {
+        if (this.filtroAno) {
+            this.filtroAno.addEventListener('change', (e) => {
+                if (this.onFiltroAnoChange) {
+                    this.onFiltroAnoChange(e.target.value);
+                }
+            });
+        }
     }
 
     mostrarCarregamento() {
@@ -39,7 +74,12 @@ class PartidoPerfilView {
     }
 
     preencherDadosPerfil(partidoInfo) {
-        if (this.logo) this.logo.textContent = partidoInfo.sigla;
+        if (this.logo) {
+            this.logo.className = "w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-gray-200 shrink-0 overflow-hidden";
+            this.logo.innerHTML = `
+                <img src="${partidoInfo.urlLogo || ''}" alt="Logo do ${partidoInfo.sigla}" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-2xl font-extrabold text-teal-700\'>${partidoInfo.sigla}</span>';">
+            `;
+        }
         if (this.nome) this.nome.textContent = partidoInfo.nome || partidoInfo.sigla;
         if (this.membrosCount) this.membrosCount.textContent = partidoInfo.totalMembros;
 
@@ -94,6 +134,199 @@ class PartidoPerfilView {
                 </div>
             `;
             this.grid.appendChild(card);
+        });
+    }
+
+    preencherWikipedia(wikiData) {
+        if (this.wikiEspectro) this.wikiEspectro.textContent = wikiData.espectro || "Nao documentado";
+        if (this.wikiIdeologia) this.wikiIdeologia.textContent = wikiData.ideologia || "Nao documentada";
+        if (this.wikiResumo) this.wikiResumo.textContent = wikiData.resumo || "Resumo indisponivel.";
+        if (this.wikiLink && wikiData.font) {
+            this.wikiLink.href = wikiData.font;
+            this.wikiLink.classList.remove('hidden');
+        }
+    }
+
+    mostrarLoaderFinancas() {
+        if (this.totalGastoBancada) this.totalGastoBancada.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i>';
+        if (this.mediaGastoBancada) this.mediaGastoBancada.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i>';
+    }
+
+    preencherDadosFinanceiros(financeData, ano) {
+        if (this.totalGastoBancada) {
+            this.totalGastoBancada.textContent = financeData.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+        if (this.mediaGastoBancada) {
+            this.mediaGastoBancada.textContent = financeData.mediaPorDeputado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+        if (this.anoFinanceiroDisplay) {
+            this.anoFinanceiroDisplay.textContent = `Ano: ${ano}`;
+        }
+
+        // Renderizar grafico de rosquinha (doughnut) das categorias de despesas
+        if (this.canvasFinance) {
+            if (this.financeChartInstance) {
+                this.financeChartInstance.destroy();
+            }
+
+            const categorias = Object.keys(financeData.porTipo || {});
+            const valores = Object.values(financeData.porTipo || {});
+
+            if (valores.length === 0) {
+                const ctx = this.canvasFinance.getContext('2d');
+                ctx.clearRect(0, 0, this.canvasFinance.width, this.canvasFinance.height);
+                return;
+            }
+
+            // Seleciona top 5 categorias e agrupa o restante em "Outras Despesas"
+            const dataList = categorias.map((cat, idx) => ({ cat, val: valores[idx] }));
+            dataList.sort((a, b) => b.val - a.val);
+
+            const topCategories = [];
+            const topValues = [];
+            let outrosValor = 0;
+
+            dataList.forEach((item, idx) => {
+                if (idx < 5) {
+                    topCategories.push(item.cat);
+                    topValues.push(item.val);
+                } else {
+                    outrosValor += item.val;
+                }
+            });
+
+            if (outrosValor > 0) {
+                topCategories.push("Outras Despesas");
+                topValues.push(outrosValor);
+            }
+
+            this.financeChartInstance = new Chart(this.canvasFinance, {
+                type: 'doughnut',
+                data: {
+                    labels: topCategories,
+                    datasets: [{
+                        data: topValues,
+                        backgroundColor: [
+                            'rgba(13, 148, 136, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(234, 179, 8, 0.8)',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(156, 163, 175, 0.8)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.raw || 0;
+                                    return `${context.label}: ${val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    renderizarEspectroInterno(membrosEspectro) {
+        if (!this.canvasEspectroInterno) return;
+
+        if (this.espectroChartInstance) {
+            this.espectroChartInstance.destroy();
+        }
+
+        const dataPoints = membrosEspectro.map(dep => {
+            let bgColor = 'rgba(107, 114, 128, 0.8)';
+            if (dep.alinhamento > 66) bgColor = 'rgba(34, 197, 94, 0.85)';
+            else if (dep.alinhamento < 33) bgColor = 'rgba(239, 68, 68, 0.85)';
+            else bgColor = 'rgba(234, 179, 8, 0.85)';
+
+            return {
+                x: dep.coesao,
+                y: dep.alinhamento,
+                deputado: dep,
+                backgroundColor: bgColor
+            };
+        });
+
+        this.espectroChartInstance = new Chart(this.canvasEspectroInterno, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Deputados',
+                    data: dataPoints,
+                    pointBackgroundColor: dataPoints.map(p => p.backgroundColor),
+                    pointBorderColor: 'white',
+                    pointBorderWidth: 1,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                onClick: (e, elements) => {
+                    if (elements && elements.length > 0) {
+                        const el = elements[0];
+                        const dataPoint = this.espectroChartInstance.data.datasets[el.datasetIndex].data[el.index];
+                        if (dataPoint && dataPoint.deputado && dataPoint.deputado.id) {
+                            window.location.href = `deputado-perfil.html?id=${dataPoint.deputado.id}`;
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        min: 0,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Coesao Partidaria (%)',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Alinhamento com o Governo (%)',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const dep = context.raw.deputado;
+                                return `${dep.nome} (${dep.partido}-${dep.estado})`;
+                            },
+                            afterLabel: (context) => {
+                                const dep = context.raw.deputado;
+                                return [
+                                    `Coesao Partidaria: ${dep.coesao.toFixed(1)}%`,
+                                    `Alinhamento Governo: ${dep.alinhamento.toFixed(1)}%`
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 }

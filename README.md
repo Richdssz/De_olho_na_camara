@@ -28,12 +28,13 @@ A plataforma responde perguntas que qualquer brasileiro deveria poder fazer:
 
 | Camada | Tecnologia |
 |---|---|
-| Marcação | HTML5 semântico |
-| Estilização | Tailwind CSS 3.x (CDN) |
-| Lógica | Vanilla JavaScript ES6+ (arquitetura MVC) |
-| Gráficos | Chart.js 4.x (CDN) |
+| Marcacao | HTML5 semantico |
+| Estilizacao | Tailwind CSS 3.x (CDN) |
+| Logica | Vanilla JavaScript ES6+ (arquitetura MVC) |
+| Graficos | Chart.js 4.x (CDN) |
 | Banco / Auth | Back4App via Parse JS SDK (CDN) |
-| Dados legislativos | API pública da Câmara dos Deputados (CC BY 4.0) |
+| Dados legislativos | API publica da Camara dos Deputados (CC BY 4.0) |
+| Dados ideologicos / historicos | API publica da Wikipedia (pt.wikipedia.org) |
 
 ---
 

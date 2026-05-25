@@ -58,8 +58,8 @@ class PartidosView {
             card.innerHTML = `
                 <div>
                     <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 bg-teal-50 text-teal-700 rounded-2xl flex items-center justify-center text-xl font-bold border border-teal-100">
-                            ${p.sigla}
+                        <div class="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center border border-gray-150 bg-white shrink-0">
+                            <img src="${p.urlLogo || ''}" alt="Logo do ${p.sigla}" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'font-bold text-teal-700 text-lg\'>${p.sigla}</span>';">
                         </div>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border ${coesaoBadgeClass}">
                             ${coesaoTexto}

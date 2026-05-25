@@ -25,7 +25,7 @@ class PartidosController {
             const [partidosResp, deputadosResp, coesaoResp] = await Promise.all([
                 window.PartidoModel.listar(),
                 window.DeputadoModel.listar(), // Utiliza cache de 1h
-                window.PartidoModel.calcularCoesaoPartidos(3) // Utiliza cache de 1h
+                window.PartidoModel.calcularCoesaoPartidos(10) // Utiliza cache de 1h
             ]);
 
             if (!partidosResp.success) {
@@ -54,6 +54,7 @@ class PartidosController {
                         id: p.id,
                         sigla: p.sigla,
                         nome: p.nome,
+                        urlLogo: p.urlLogo,
                         totalMembros: membrosPorPartido[siglaUpper] || 0,
                         coesao: coesaoMap[siglaUpper] !== undefined ? coesaoMap[siglaUpper] : 100
                     };
