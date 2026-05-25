@@ -75,7 +75,7 @@ class PerfilDeputadoController {
                 window.camaraApi.buscarDespesas(id, anoCorrente, mesCorrente).catch(() => []),
                 window.camaraApi.buscarEventos(id, dataInicio, dataFim).catch(() => []),
                 window.camaraApi.buscarProposicoesAutor(id).catch(() => []),
-                window.camaraApi.buscarVotacoesDeputado(id, 15).catch(() => []),
+                window.camaraApi.buscarVotacoesDeputado(id, dataInicio, dataFim, 15).catch(() => []),
                 window.camaraApi.buscarSessoesOrgao(114, dataInicio, dataFim).catch(() => []),
                 window.camaraApi.buscarOrgaosDeputado(id).catch(() => []),
                 window.camaraApi.buscarFrentesDeputado(id).catch(() => []),
@@ -104,8 +104,11 @@ class PerfilDeputadoController {
                         window.camaraApi.buscarOrientacoesVotacao(v.id).catch(() => [])
                     ]);
 
-                    const votoDoDeputado = (votosList || []).find(vote => vote.deputado && vote.deputado.id === id);
-                    const tipoVoto = votoDoDeputado ? votoDoDeputado.tipoVoto : "Ausente";
+                    const votoDoDeputado = (votosList || []).find(vote => {
+                        const dep = vote.deputado || vote.deputado_;
+                        return dep && dep.id === id;
+                    });
+                    const tipoVoto = votoDoDeputado ? votoDoDeputado.tipoVoto : (v.voto || "Ausente");
 
                     votosDeputadoMapeados.push({
                         votacaoId: v.id,

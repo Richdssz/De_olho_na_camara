@@ -75,7 +75,34 @@ class CamaraApiService {
             idDeputadoAutor: idDeputadoAutor,
             itens: 100
         });
-        return response.dados || [];
+        const dados = response.dados || [];
+        
+        const links = response.links || [];
+        const lastLinkObj = links.find(l => l.rel === 'last');
+        
+        if (lastLinkObj) {
+            try {
+                const lastUrl = new URL(lastLinkObj.href);
+                const lastPage = parseInt(lastUrl.searchParams.get('pagina')) || 1;
+                
+                if (lastPage > 1) {
+                    const lastPageResp = await this._fetch('/proposicoes', {
+                        idDeputadoAutor: idDeputadoAutor,
+                        itens: 100,
+                        pagina: lastPage
+                    });
+                    const lastPageDados = lastPageResp.dados || [];
+                    const totalReal = (lastPage - 1) * 100 + lastPageDados.length;
+                    
+                    while (dados.length < totalReal) {
+                        dados.push({});
+                    }
+                }
+            } catch (err) {
+                console.warn("[CamaraApi] Nao foi possivel ler o total real de proposicoes via link last:", err);
+            }
+        }
+        return dados;
     }
 
     /**
@@ -160,11 +187,105 @@ class CamaraApiService {
     /**
      * Busca os votos recentes específicos de um parlamentar.
      */
-    async buscarVotacoesDeputado(id, itens = 20) {
-        const response = await this._fetch(`/deputados/${id}/votacoes`, {
-            itens: itens
+    async buscarVotacoesDeputado(id, dataInicio, dataFim, itens = 20) {
+        const params = { itens: itens };
+        if (dataInicio) {
+            params.dataInicio = dataInicio;
+        }
+        if (dataFim) {
+            params.dataFim = dataFim;
+        }
+        
+        const queryParams = new URLSearchParams({
+            formato: 'json',
+            ...params
         });
-        return response.dados || [];
+        const urlCompleta = `${this.baseUrl}/deputados/${id}/votacoes?${queryParams.toString()}`;
+        
+        let dados = [];
+        let success = false;
+        
+        try {
+            const response = await this._fetch(`/deputados/${id}/votacoes`, params);
+            dados = response.dados || [];
+            success = true;
+        } catch (err) {
+            console.warn(`[CamaraApi] Falha ao consultar endpoint direto do deputado. URL: ${urlCompleta}. Erro: ${err.message}`);
+        }
+        
+        if (!success || dados.length === 0) {
+            if (success) {
+                console.warn(`[CamaraApi] Nenhuma votacao retornada. URL da requisicao: ${urlCompleta}`);
+            }
+            
+            try {
+                console.log(`[CamaraApi] Iniciando fallback robusto via /votacoes com filtro de Plenário...`);
+                
+                let chunks = [];
+                if (dataInicio && dataFim) {
+                    const start = new Date(dataInicio);
+                    const end = new Date(dataFim);
+                    let currentStart = new Date(start);
+                    
+                    while (currentStart <= end) {
+                        let currentEnd = new Date(currentStart);
+                        currentEnd.setMonth(currentEnd.getMonth() + 3);
+                        currentEnd.setDate(currentEnd.getDate() - 1);
+                        if (currentEnd > end) {
+                            currentEnd = new Date(end);
+                        }
+                        
+                        const startIso = currentStart.toISOString().split('T')[0];
+                        const endIso = currentEnd.toISOString().split('T')[0];
+                        chunks.push({ dataInicio: startIso, dataFim: endIso });
+                        
+                        currentStart = new Date(currentEnd);
+                        currentStart.setDate(currentStart.getDate() + 1);
+                    }
+                } else {
+                    const hoje = new Date();
+                    const tresMesesAtras = new Date();
+                    tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
+                    chunks.push({
+                        dataInicio: tresMesesAtras.toISOString().split('T')[0],
+                        dataFim: hoje.toISOString().split('T')[0]
+                    });
+                }
+                
+                const promessas = chunks.map(chunk => 
+                    this._fetch('/votacoes', {
+                        dataInicio: chunk.dataInicio,
+                        dataFim: chunk.dataFim,
+                        itens: 100
+                    }).then(res => res.dados || []).catch(() => [])
+                );
+                
+                const resultados = await Promise.all(promessas);
+                const todasVotacoes = [];
+                const idsVistos = new Set();
+                
+                resultados.forEach(lista => {
+                    lista.forEach(v => {
+                        if (v.siglaOrgao === 'PLEN' && !idsVistos.has(v.id)) {
+                            idsVistos.add(v.id);
+                            todasVotacoes.push(v);
+                        }
+                    });
+                });
+                
+                todasVotacoes.sort((a, b) => {
+                    const dataA = new Date(a.dataHoraRegistro || a.data || 0);
+                    const dataB = new Date(b.dataHoraRegistro || b.data || 0);
+                    return dataB - dataA;
+                });
+                
+                dados = todasVotacoes.slice(0, itens);
+            } catch (fallbackErr) {
+                console.error("[CamaraApi] Falha critica no fallback de votacoes:", fallbackErr);
+            }
+        }
+        
+        return dados;
     }
 
     /**

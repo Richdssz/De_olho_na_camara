@@ -56,7 +56,7 @@ class PartidosController {
                         nome: p.nome,
                         urlLogo: p.urlLogo,
                         totalMembros: membrosPorPartido[siglaUpper] || 0,
-                        coesao: coesaoMap[siglaUpper] !== undefined ? coesaoMap[siglaUpper] : 100
+                        coesao: coesaoMap[siglaUpper] !== undefined ? coesaoMap[siglaUpper] : null
                     };
                 })
                 // Filtramos apenas os partidos que têm pelo menos 1 membro na legislatura ativa

@@ -105,14 +105,23 @@ class PerfilDeputadoView {
 
         const coesaoEl = document.getElementById('kpi-coesao');
         const badgeCoesao = document.getElementById('badge-coesao');
-        if (coesaoEl) coesaoEl.textContent = `${coesao.coesao}%`;
+        if (coesaoEl) {
+            coesaoEl.textContent = (coesao && coesao.totalComOrientacao > 0) ? `${coesao.coesao}%` : 'Sem dados';
+        }
         if (badgeCoesao) {
-            badgeCoesao.textContent = `${coesao.iguais} de ${coesao.totalComOrientacao} alinhados - ${coesao.classificacao.texto}`;
-            badgeCoesao.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold border ${coesao.classificacao.classe}`;
+            if (coesao && coesao.totalComOrientacao > 0) {
+                badgeCoesao.textContent = `${coesao.iguais} de ${coesao.totalComOrientacao} alinhados - ${coesao.classificacao.texto}`;
+                badgeCoesao.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold border ${coesao.classificacao.classe}`;
+            } else {
+                badgeCoesao.textContent = 'Sem votacoes recentes';
+                badgeCoesao.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200';
+            }
         }
 
         const proposicoesEl = document.getElementById('kpi-proposicoes');
-        if (proposicoesEl) proposicoesEl.textContent = proposicoes;
+        if (proposicoesEl) {
+            proposicoesEl.textContent = (proposicoes !== undefined && proposicoes !== null) ? proposicoes : 'Sem dados';
+        }
 
         // ROI Parlamentar
         const roiEl = document.getElementById('kpi-roi');
@@ -213,7 +222,7 @@ class PerfilDeputadoView {
         if (votos.length === 0) {
             corpo.innerHTML = `
                 <tr>
-                    <td colspan="5" class="py-10 text-center text-gray-500 font-medium">Nenhuma votação nominal recente encontrada para este deputado.</td>
+                    <td colspan="5" class="py-10 text-center text-gray-500 font-medium">Nenhuma votacao registrada neste periodo</td>
                 </tr>
             `;
             return;
@@ -232,8 +241,9 @@ class PerfilDeputadoView {
             let badgeVotoClass = 'bg-gray-100 text-gray-700 border-gray-200';
             let votoTexto = v.voto;
             if (v.voto === 'Sim') badgeVotoClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-            else if (v.voto === 'Não') badgeVotoClass = 'bg-red-50 text-red-700 border-red-200';
-            else if (v.voto === 'Abstenção') badgeVotoClass = 'bg-yellow-50 text-yellow-700 border-yellow-200';
+            else if (v.voto === 'Não' || v.voto === 'Nao') badgeVotoClass = 'bg-red-50 text-red-700 border-red-200';
+            else if (v.voto === 'Abstenção' || v.voto === 'Abstencao') badgeVotoClass = 'bg-yellow-50 text-yellow-700 border-yellow-200';
+            else if (v.voto === 'Obstrução' || v.voto === 'Obstrucao') badgeVotoClass = 'bg-amber-50 text-amber-700 border-amber-200';
             else if (v.voto === 'Ausente') badgeVotoClass = 'bg-gray-200 text-gray-600 border-gray-300';
 
             let badgeAlinhamentoHTML = `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">Sem Orientação</span>`;

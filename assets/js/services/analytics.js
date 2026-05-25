@@ -309,15 +309,11 @@ class AnalyticsService {
         }
 
         const custoPorProp = totalGasto / totalProposicoes;
-
-        // Benchmarks baseados em media nacional estimada
-        // Media nacional: ~R$ 420.000/ano de cota / ~15 proposicoes = ~R$ 28.000 por proposicao
-        const BENCHMARK = 28000;
         let classificacao;
 
-        if (custoPorProp <= BENCHMARK * 0.75) {
+        if (custoPorProp < 100000) {
             classificacao = { texto: 'Alta eficiencia', classe: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
-        } else if (custoPorProp <= BENCHMARK * 1.5) {
+        } else if (custoPorProp <= 300000) {
             classificacao = { texto: 'Eficiencia media', classe: 'bg-amber-50 text-amber-700 border-amber-200' };
         } else {
             classificacao = { texto: 'Baixa eficiencia', classe: 'bg-red-50 text-red-700 border-red-200' };

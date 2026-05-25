@@ -76,8 +76,11 @@ class PartidoPerfilView {
     preencherDadosPerfil(partidoInfo) {
         if (this.logo) {
             this.logo.className = "w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-gray-200 shrink-0 overflow-hidden";
+            const sigla = partidoInfo.sigla;
+            const placeholder = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23f0fdf4'/><text x='50' y='55' font-family='Arial,sans-serif' font-size='28' font-weight='bold' fill='%230f766e' text-anchor='middle' dominant-baseline='middle'>${sigla}</text></svg>`;
+            
             this.logo.innerHTML = `
-                <img src="${partidoInfo.urlLogo || ''}" alt="Logo do ${partidoInfo.sigla}" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'text-2xl font-extrabold text-teal-700\'>${partidoInfo.sigla}</span>';">
+                <img id="partido-logo-img" src="${partidoInfo.urlLogo || ''}" alt="Logo do ${sigla}" class="w-full h-full object-contain p-1" onerror="if (this.dataset.wikiLogo && this.src !== this.dataset.wikiLogo) { this.src = this.dataset.wikiLogo; } else { this.onerror = null; this.outerHTML = '<div id=\\'partido-logo-img\\' class=\\'w-full h-full bg-teal-50 flex items-center justify-center text-teal-700 font-bold border border-teal-100\\'>${sigla}</div>'; }">
             `;
         }
         if (this.nome) this.nome.textContent = partidoInfo.nome || partidoInfo.sigla;
@@ -85,9 +88,9 @@ class PartidoPerfilView {
 
         if (this.coesaoBadge) {
             let coesaoBadgeClass = 'bg-gray-100 text-gray-700 border-gray-200';
-            let coesaoTexto = 'Sem Votos';
+            let coesaoTexto = 'Sem dados';
 
-            if (partidoInfo.coesao !== undefined) {
+            if (partidoInfo.coesao !== undefined && partidoInfo.coesao !== null) {
                 if (partidoInfo.coesao >= 90) {
                     coesaoBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                     coesaoTexto = `${partidoInfo.coesao}% (Alta)`;
@@ -145,6 +148,19 @@ class PartidoPerfilView {
             this.wikiLink.href = wikiData.font;
             this.wikiLink.classList.remove('hidden');
         }
+
+        const logoImg = document.getElementById('partido-logo-img');
+        if (logoImg && wikiData.logoUrl) {
+            logoImg.dataset.wikiLogo = wikiData.logoUrl;
+            const sigla = logoImg.alt ? logoImg.alt.replace("Logo do ", "") : (logoImg.textContent || '');
+            
+            if (logoImg.tagName === 'DIV' || !logoImg.src || logoImg.src.endsWith('undefined') || logoImg.src === window.location.href || logoImg.src.includes('svg+xml')) {
+                const parent = logoImg.parentNode;
+                if (parent) {
+                    parent.innerHTML = `<img id="partido-logo-img" src="${wikiData.logoUrl}" alt="Logo do ${sigla}" class="w-full h-full object-contain p-1" onerror="this.onerror = null; this.outerHTML = '<div id=\\'partido-logo-img\\' class=\\'w-full h-full bg-teal-50 flex items-center justify-center text-teal-700 font-bold border border-teal-100\\'>${sigla}</div>';">`;
+                }
+            }
+        }
     }
 
     mostrarLoaderFinancas() {
@@ -173,8 +189,27 @@ class PartidoPerfilView {
             const valores = Object.values(financeData.porTipo || {});
 
             if (valores.length === 0) {
-                const ctx = this.canvasFinance.getContext('2d');
-                ctx.clearRect(0, 0, this.canvasFinance.width, this.canvasFinance.height);
+                this.financeChartInstance = new Chart(this.canvasFinance, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sem dados de despesas'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['rgba(229, 231, 235, 1)'], // gray-200
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        circumference: 180,
+                        rotation: -90,
+                        plugins: {
+                            legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } },
+                            tooltip: { callbacks: { label: () => 'Sem dados' } }
+                        }
+                    }
+                });
                 return;
             }
 
@@ -220,6 +255,8 @@ class PartidoPerfilView {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    circumference: 180,
+                    rotation: -90,
                     plugins: {
                         legend: {
                             position: 'right',

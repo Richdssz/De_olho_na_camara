@@ -216,7 +216,10 @@ class ComparadorController {
                     window.camaraApi.buscarOrientacoesVotacao(v.id).catch(() => [])
                 ]);
 
-                const votoDoDeputado = votosList.find(vote => vote.deputado_ && vote.deputado_.id === id);
+                const votoDoDeputado = votosList.find(vote => {
+                    const dep = vote.deputado || vote.deputado_;
+                    return dep && dep.id === id;
+                });
                 const tipoVoto = votoDoDeputado ? votoDoDeputado.tipoVoto : "Ausente";
 
                 votosDeputadoMapeados.push({
@@ -272,12 +275,12 @@ class ComparadorController {
 
             const dataA = {
                 membrosCount: partA.totalMembros,
-                coesao: coesaoMap[siglaUpperA] !== undefined ? coesaoMap[siglaUpperA] : 100
+                coesao: coesaoMap[siglaUpperA] !== undefined ? coesaoMap[siglaUpperA] : null
             };
 
             const dataB = {
                 membrosCount: partB.totalMembros,
-                coesao: coesaoMap[siglaUpperB] !== undefined ? coesaoMap[siglaUpperB] : 100
+                coesao: coesaoMap[siglaUpperB] !== undefined ? coesaoMap[siglaUpperB] : null
             };
 
             this.view.renderizarComparacaoPartidos(partA, dataA, partB, dataB);

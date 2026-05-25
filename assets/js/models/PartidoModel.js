@@ -103,7 +103,7 @@ class PartidoModel {
             for (const [partido, stats] of Object.entries(coesaoMap)) {
                 resultado[partido] = stats.total > 0 
                     ? Math.round((stats.alinhados / stats.total) * 100)
-                    : 100;
+                    : null;
             }
 
             if (window.CacheService) {
@@ -144,7 +144,7 @@ class PartidoModel {
             }
 
             const pageTitle = searchResults[0].title;
-            const detailUrl = `https://pt.wikipedia.org/w/api.php?action=query&prop=extracts|revisions&exintro=1&explaintext=1&rvprop=content&rvsection=0&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`;
+            const detailUrl = `https://pt.wikipedia.org/w/api.php?action=query&prop=extracts|pageimages&piprop=original&exintro=true&explaintext=true&titles=${encodeURIComponent(pageTitle)}&format=json&origin=*`;
 
             const detailRes = await fetch(detailUrl).then(r => r.json());
             const pages = detailRes?.query?.pages || {};
@@ -156,35 +156,18 @@ class PartidoModel {
 
             const pageData = pages[pageId];
             const extract = pageData.extract || "";
-            const wikitext = pageData.revisions?.[0]?.["*"] || "";
 
-            let ideologia = null;
-            let espectro = null;
-
-            const ideologiaMatch = wikitext.match(/\|\s*ideologia\s*=\s*([^\n|]+)/i);
-            const espectroMatch = wikitext.match(/\|\s*espectro\s*=\s*([^\n|]+)/i);
-
-            const cleanWikiText = (txt) => {
-                if (!txt) return "";
-                return txt
-                    .replace(/\{\{[^}]+\}\}/g, '')
-                    .replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2')
-                    .replace(/\[\[([^\]]+)\]\]/g, '$1')
-                    .replace(/<[^>]+>/g, '')
-                    .replace(/&nbsp;/g, ' ')
-                    .trim();
-            };
-
-            if (ideologiaMatch) ideologia = cleanWikiText(ideologiaMatch[1]);
-            if (espectroMatch) espectro = cleanWikiText(espectroMatch[1]);
-
-            if (!ideologia || ideologia.length < 3) ideologia = fallback.ideologia;
-            if (!espectro || espectro.length < 3) espectro = fallback.espectro;
+            // Limpeza de colchetes e referências no resumo
+            const cleanExtract = extract
+                .replace(/\[\d+\]/g, "")
+                .replace(/[\[\]]/g, "")
+                .trim();
 
             const result = {
-                resumo: extract || "Resumo historico indisponivel na Wikipedia.",
-                ideologia,
-                espectro,
+                resumo: cleanExtract || "Resumo historico indisponivel na Wikipedia.",
+                ideologia: fallback.ideologia,
+                espectro: fallback.espectro,
+                logoUrl: pageData.original?.source || null,
                 font: `https://pt.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`
             };
 

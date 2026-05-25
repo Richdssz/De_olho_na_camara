@@ -68,7 +68,7 @@ class PartidoPerfilController {
             const coesaoMap = coesaoResp.success ? (coesaoResp.data || {}) : {};
             const coesao = coesaoMap[this.partidoSiglaGlobal.toUpperCase()] !== undefined 
                 ? coesaoMap[this.partidoSiglaGlobal.toUpperCase()] 
-                : 100;
+                : null;
 
             const partidoListaInfo = partidosListResp.success ? (partidosListResp.data || []).find(p => p.sigla.toUpperCase() === this.partidoSiglaGlobal.toUpperCase()) : null;
             const urlLogo = (partidoInfo && partidoInfo.urlLogo) ? partidoInfo.urlLogo : (partidoListaInfo ? partidoListaInfo.urlLogo : null);

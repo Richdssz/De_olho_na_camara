@@ -146,7 +146,7 @@
 
 - [x] **Fase 2.3 (Refatoracao de Partidos e Deputados)** — Expansao do Perfil do Deputado e Refatoracao Completa de Partidos (Integracao Wikipedia, Consolidacao de Gastos de Bancada, Logos Oficiais e Scatter Plot de Espectro Interno)
 - [x] **Sprint 5** — Comparador lado a lado de dois parlamentares ou partidos
-- [ ] **Sprint 6** — Geracao de PDFs e download em CSV
+- [ ] **Sprint 6** — Geracao de PDFs e download em CSV(por ultimo(baixa importancia))
 - [ ] **Sprint 7** — Heatmap geografico de votacoes por estado
 - [/] **Sprint 8** — Forum e Termometro da Opiniao Publica em proposicoes (Termometro implementado)
 - [ ] **Sprint 9** — Bussola Ideologica (quiz + algoritmo de match com politicos)
