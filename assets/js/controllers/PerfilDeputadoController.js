@@ -117,9 +117,12 @@ class PerfilDeputadoController {
 
             // 5.1 Atualizar Links de Transparência
             const urlCamara = `https://www.camara.leg.br/deputados/${id}`;
-            document.getElementById('link-transparencia-despesas').href = urlCamara;
-            document.getElementById('link-transparencia-presenca').href = urlCamara;
-            document.getElementById('link-transparencia-votacoes').href = urlCamara;
+            const linkDespesas = document.getElementById('link-transparencia-despesas');
+            if (linkDespesas) linkDespesas.href = urlCamara;
+            const linkPresenca = document.getElementById('link-transparencia-presenca');
+            if (linkPresenca) linkPresenca.href = urlCamara;
+            const linkVotacoes = document.getElementById('link-transparencia-votacoes');
+            if (linkVotacoes) linkVotacoes.href = urlCamara;
 
             // 6. Termômetro de Leis - Carregar votos comunitários para as proposições
             const propToShow = proposicoes.slice(0, 6);

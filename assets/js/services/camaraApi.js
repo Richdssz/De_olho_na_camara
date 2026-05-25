@@ -149,7 +149,7 @@ class CamaraApiService {
      * Busca a lista dos parlamentares de um partido durante um período.
      */
     async buscarMembrosPartido(id, params = {}) {
-        });
+        const response = await this._fetch(`/partidos/${id}/membros`, params);
         return response.dados || [];
     }
 

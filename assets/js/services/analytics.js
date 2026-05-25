@@ -31,8 +31,6 @@ class AnalyticsService {
             total: totalReal,
             classificacao: this.classificarPresenca(rate)
         };
-            classificacao: this.classificarPresenca(rate)
-        };
     }
 
     /**
