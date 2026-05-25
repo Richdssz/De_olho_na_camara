@@ -93,6 +93,24 @@ class AvaliacaoModel {
             return this._formatResponse(false, [], 'db', error.message);
         }
     }
+
+    /**
+     * Apaga a avaliação do usuário logado para um deputado específico.
+     * @param {number} deputadoId 
+     * @returns {Promise<Object>}
+     */
+    static async apagarAvaliacao(deputadoId) {
+        try {
+            const avaliacaoObj = await window.Back4AppService.getFirst("Avaliacao", { deputadoId });
+            if (avaliacaoObj) {
+                await window.Back4AppService.deleteObj(avaliacaoObj);
+                return this._formatResponse(true, null, 'db');
+            }
+            return this._formatResponse(false, null, 'db', "Avaliação não encontrada.");
+        } catch (error) {
+            return this._formatResponse(false, null, 'db', error.message);
+        }
+    }
 }
 
 window.AvaliacaoModel = AvaliacaoModel;

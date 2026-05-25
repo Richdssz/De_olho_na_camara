@@ -158,9 +158,7 @@ class CamaraApiService {
      */
     async buscarVotacoesDeputado(id, itens = 20) {
         const response = await this._fetch(`/deputados/${id}/votacoes`, {
-            itens: itens,
-            ordem: 'DESC',
-            ordenarPor: 'dataHoraVoto'
+            itens: itens
         });
         return response.dados || [];
     }
@@ -174,6 +172,14 @@ class CamaraApiService {
             dataFim: dataFim,
             itens: 100
         });
+        return response.dados || [];
+    }
+
+    /**
+     * Busca as áreas temáticas de uma proposição específica.
+     */
+    async buscarTemasProposicao(id) {
+        const response = await this._fetch(`/proposicoes/${id}/temas`);
         return response.dados || [];
     }
 }

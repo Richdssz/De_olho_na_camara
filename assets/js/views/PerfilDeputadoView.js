@@ -244,7 +244,7 @@ class PerfilDeputadoView {
         });
     }
 
-    renderizarGraficos(despesas, eventos) {
+    renderizarGraficos(despesas, eventos, sessoesPlenario) {
         const gastosPorCategoria = {};
         despesas.forEach(d => {
             const valor = parseFloat(d.valorDocumento || d.valorLiquido || 0);
@@ -279,7 +279,25 @@ class PerfilDeputadoView {
             }
         });
 
-        const sessoesPlanejadasMes = [0, 8, 10, 10, 10, 10, 8, 0, 10, 10, 10, 4];
+        // Calcula dinamicamente as sessões oficiais deliberativas ocorridas no plenário por mês
+        const sessoesPlanejadasMes = Array(12).fill(0);
+        (sessoesPlenario || []).filter(e => 
+            e.descricaoTipo && e.descricaoTipo.toLowerCase().includes('deliberativa')
+        ).forEach(e => {
+            const dataStr = e.dataHoraInicio;
+            if (dataStr) {
+                const mes = new Date(dataStr).getMonth();
+                if (mes >= 0 && mes <= 11) {
+                    sessoesPlanejadasMes[mes]++;
+                }
+            }
+        });
+
+        // Garante consistência estatística (sessões ocorridas nunca é menor que presenças reais do deputado)
+        for (let i = 0; i < 12; i++) {
+            sessoesPlanejadasMes[i] = Math.max(sessoesPlanejadasMes[i], presencaMensal[i]);
+        }
+
         this._renderizarGraficoPresenca(labelsMeses, presencaMensal, sessoesPlanejadasMes);
     }
 
@@ -397,6 +415,19 @@ class PerfilDeputadoView {
         }
     }
 
+    onApagarComentarioClick(callback) {
+        this._onApagarComentarioCallback = callback;
+    }
+
+    onFiltroAnoChange(callback) {
+        const selectAno = document.getElementById('global-filtro-ano');
+        if (selectAno) {
+            selectAno.addEventListener('change', (e) => {
+                callback(parseInt(e.target.value));
+            });
+        }
+    }
+
     onSalvarAvaliacaoClick(callback) {
         const btn = document.getElementById('btn-salvar-avaliacao-perfil');
         if (btn) {
@@ -460,6 +491,9 @@ class PerfilDeputadoView {
             return;
         }
 
+        const currentUser = window.Back4AppService ? window.Back4AppService.getCurrentUser() : null;
+        const currentUsername = currentUser ? currentUser.get("username") : null;
+
         container.innerHTML = '';
         comentarios.forEach(c => {
             const dateStr = c.createdAt 
@@ -470,6 +504,25 @@ class PerfilDeputadoView {
                 <i class="fa-solid fa-star text-sm ${i < c.nota ? 'text-yellow-400' : 'text-gray-200'}"></i>
             `).join('');
 
+            const isOwnComment = currentUsername && c.username === currentUsername;
+            let ownCommentActionsHTML = "";
+
+            if (isOwnComment) {
+                ownCommentActionsHTML = `
+                    <div class="flex justify-between items-center mt-1 border-t border-gray-200/50 pt-2 no-print">
+                        <span class="text-xs text-teal-600 font-bold flex items-center gap-1"><i class="fa-solid fa-user-pen"></i> Sua avaliação</span>
+                        <div class="flex gap-3">
+                            <button class="text-teal-600 hover:text-teal-800 font-bold text-xs flex items-center gap-1 btn-editar-comentario" data-nota="${c.nota}" data-comentario="${c.comentario.replace(/"/g, '&quot;')}">
+                                <i class="fa-solid fa-pen text-[10px]"></i> Editar
+                            </button>
+                            <button class="text-red-500 hover:text-red-700 font-bold text-xs flex items-center gap-1 btn-apagar-comentario">
+                                <i class="fa-solid fa-trash text-[10px]"></i> Apagar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
             const div = document.createElement('div');
             div.className = 'p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-2';
             div.innerHTML = `
@@ -479,8 +532,33 @@ class PerfilDeputadoView {
                 </div>
                 <div class="flex gap-1">${estrelasHTML}</div>
                 <p class="text-sm text-gray-600 font-medium leading-relaxed break-words">${c.comentario || '<span class="italic text-gray-400">Sem comentário escrito.</span>'}</p>
+                ${ownCommentActionsHTML}
             `;
             container.appendChild(div);
+        });
+
+        // Setup event listeners para deletar
+        container.querySelectorAll('.btn-apagar-comentario').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (confirm("Tem certeza que deseja apagar sua avaliação? Isso removerá sua nota e comentário permanentemente.")) {
+                    if (this._onApagarComentarioCallback) this._onApagarComentarioCallback();
+                }
+            });
+        });
+
+        // Setup event listeners para editar
+        container.querySelectorAll('.btn-editar-comentario').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const nota = parseInt(e.currentTarget.getAttribute('data-nota'));
+                const comentario = e.currentTarget.getAttribute('data-comentario');
+                
+                this.preencherMinhaAvaliacao(nota, comentario);
+                
+                const formEl = document.getElementById('perfil-estrelas-container');
+                if (formEl) {
+                    formEl.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
         });
     }
 

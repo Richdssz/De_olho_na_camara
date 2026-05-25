@@ -86,6 +86,25 @@
         <!-- Profile Content -->
         <div id="profile-content" class="hidden flex-col gap-8">
             
+            <!-- Global Period Filter -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-wrap items-center justify-between gap-4 print-card no-print">
+                <div>
+                    <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-days text-teal-600"></i> Filtro por Período
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-0.5">Selecione o ano base para filtrar as métricas de presença, gastos e votações do parlamentar.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <label for="global-filtro-ano" class="text-sm font-semibold text-gray-700">Ano de Análise:</label>
+                    <select id="global-filtro-ano" class="px-4 py-2 border border-gray-200 rounded-xl text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-teal-500 font-bold transition-all cursor-pointer">
+                        <option value="2026" selected>2026 (Ano Atual)</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- Anomaly Alerts Banner (Injected dynamically) -->
             <div id="anomalia-banner" class="hidden w-full"></div>
 

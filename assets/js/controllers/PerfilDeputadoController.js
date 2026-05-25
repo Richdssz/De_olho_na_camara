@@ -9,6 +9,7 @@ class PerfilDeputadoController {
         this.notaSelecionada = 0;
         this.proposicoesOriginais = [];
         this.votosMapLocal = {};
+        this.anoAnalise = 2026; // ano base padrão
     }
 
     async init() {
@@ -29,6 +30,8 @@ class PerfilDeputadoController {
         
         this.view.onEstrelaClick(this.handleEstrelaClick.bind(this));
         this.view.onSalvarAvaliacaoClick(this.handleSalvarAvaliacao.bind(this));
+        this.view.onApagarComentarioClick(this.handleApagarAvaliacao.bind(this));
+        this.view.onFiltroAnoChange(this.handleFiltroAnoGlobal.bind(this));
         this.view.onVotarProposicaoClick(this.handleVotarProposicao.bind(this));
         this.view.onFiltroProposicaoChange(this.handleFiltroProposicao.bind(this));
         this.view.onAbrirModalProposicaoClick(this.handleAbrirModalProposicao.bind(this));
@@ -54,7 +57,7 @@ class PerfilDeputadoController {
             await this.verificarEstadoRadar(id);
 
             // 2. Coletando dados complementares
-            const anoCorrente = new Date().getFullYear();
+            const anoCorrente = this.anoAnalise;
             
             const [despesas, eventosDeputado, proposicoes, votosDeputadoMapeados, sessoesPlenario] = await Promise.all([
                 window.camaraApi.buscarDespesas(id, anoCorrente).catch(() => []),
@@ -296,11 +299,51 @@ class PerfilDeputadoController {
         await this.renderizarProposicoesAtualizadas(propToShow);
     }
 
-    handleAbrirModalProposicao(proposicaoId) {
+    async handleAbrirModalProposicao(proposicaoId) {
         const p = (this.proposicoesOriginais || []).find(x => x.id === proposicaoId);
         if (!p) return;
         const votoInfo = (this.votosMapLocal || {})[p.id] || { apoios: 0, rejeicoes: 0, meuVoto: null };
         this.view.abrirModalProposicao(p, votoInfo);
+
+        // Carrega os temas em segundo plano da API
+        try {
+            const temasEl = document.getElementById('modal-prop-tema');
+            if (temasEl) {
+                temasEl.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-teal-600"></i> Buscando temas...';
+                const temas = await window.camaraApi.buscarTemasProposicao(p.id);
+                const temasText = temas.map(t => t.tema).join(', ') || 'Geral';
+                temasEl.textContent = temasText;
+            }
+        } catch (err) {
+            console.error("Erro ao carregar temas:", err);
+            const temasEl = document.getElementById('modal-prop-tema');
+            if (temasEl) temasEl.textContent = 'Geral';
+        }
+    }
+
+    async handleFiltroAnoGlobal(ano) {
+        this.anoAnalise = ano;
+        if (this.deputadoIdGlobal) {
+            await this.carregarDadosDeputado(this.deputadoIdGlobal);
+        }
+    }
+
+    async handleApagarAvaliacao() {
+        if (!this.deputadoIdGlobal) return;
+        try {
+            const resp = await window.AvaliacaoModel.apagarAvaliacao(this.deputadoIdGlobal);
+            if (resp.success) {
+                this.notaSelecionada = 0;
+                this.view.preencherMinhaAvaliacao(0, "");
+                await this.carregarAvaliacoes(this.deputadoIdGlobal);
+                alert("Sua avaliação foi excluída com sucesso!");
+            } else {
+                alert("Não foi possível excluir a avaliação: " + (resp.error || "Erro desconhecido"));
+            }
+        } catch (error) {
+            console.error("Erro ao apagar avaliação:", error);
+            alert("Erro de conexão ao tentar apagar.");
+        }
     }
 
     async handleVotarProposicao(proposicaoId, voto, btn, isFromModal) {
