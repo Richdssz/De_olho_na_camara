@@ -169,14 +169,14 @@
 - [x] Badges implementadas: "Presença de Ouro" (>=95% presença), "Economista" (gasto <= 50% da média), "Leal ao Partido" (coesão >= 90%), "Autor Prolífico" (>= 50 proposições).
 - [x] Exibição em cards flutuantes com animação de hover e tooltips descritivas no perfil do deputado.
 
-## 🕐 SPRINT 9 — BÚSSOLA IDEOLÓGICA *(Em Progresso)*
+## ✅ SPRINT 9 — BÚSSOLA IDEOLÓGICA *(Concluída)*
 
 **Objetivo:** Um quiz de 6 a 10 perguntas baseado em votações reais de temas polêmicos da Câmara para dar match com deputados.
-- [ ] Criação de `bussola.html` com design premium (Teal/Green) e sem emojis.
-- [ ] Implementação de `BussolaView.js` para renderizar o quiz interativo e a tela de match.
-- [ ] Implementação de `BussolaController.js` para gerenciar o estado das respostas e realizar o match de votações.
-- [ ] Algoritmo de match ideológico: cruzar as respostas "Sim"/"Não" do usuário com os votos reais dos deputados e retornar ranking de afinidade.
-- [ ] Integrar no menu sidebar de todas as páginas da plataforma.
+- [x] Criação de `bussola.html` com design premium (Teal/Green) e sem emojis.
+- [x] Implementação de `BussolaView.js` para renderizar o quiz interativo e a tela de match.
+- [x] Implementação de `BussolaController.js` para gerenciar o estado das respostas e realizar o match de votações.
+- [x] Algoritmo de match ideológico: cruzar as respostas "Sim"/"Não" do usuário com os votos reais dos deputados e retornar ranking de afinidade.
+- [x] Integrar no menu sidebar de todas as páginas da plataforma.
 
 ## 📈 FASE 2 — ACOMPANHAMENTO DO STATUS
 
@@ -185,7 +185,7 @@
 - [ ] **Sprint 6** — Geração de PDFs e download em CSV (por último / baixa importância)
 - [ ] **Sprint 7** — Heatmap geográfico de votações por estado
 - [ ] **Sprint 8** — Fórum e Termômetro da Opinião Pública (Fórum pendente, Termômetro OK)
-- [/] **Sprint 9** — Bússola Ideológica (quiz + match) *(Em execução)*
+- [x] **Sprint 9** — Bússola Ideológica (quiz + match) — Concluído
 - [x] **Sprint 10** — Mapa de espectro ideológico baseado em votos reais — Concluído
 - [x] **Sprint 11** — Gamificação: badges por metas de atuação parlamentar — Concluído
 
