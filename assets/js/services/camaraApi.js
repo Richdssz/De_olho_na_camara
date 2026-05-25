@@ -149,8 +149,30 @@ class CamaraApiService {
      * Busca a lista dos parlamentares de um partido durante um período.
      */
     async buscarMembrosPartido(id, params = {}) {
-        const response = await this._fetch(`/partidos/${id}/membros`, {
-            ...params
+        });
+        return response.dados || [];
+    }
+
+    /**
+     * Busca os votos recentes específicos de um parlamentar.
+     */
+    async buscarVotacoesDeputado(id, itens = 20) {
+        const response = await this._fetch(`/deputados/${id}/votacoes`, {
+            itens: itens,
+            ordem: 'DESC',
+            ordenarPor: 'dataHoraVoto'
+        });
+        return response.dados || [];
+    }
+
+    /**
+     * Busca os eventos/sessões deliberativas de um órgão (ex: Plenário 114) no período.
+     */
+    async buscarSessoesOrgao(orgaoId, dataInicio, dataFim) {
+        const response = await this._fetch(`/orgaos/${orgaoId}/eventos`, {
+            dataInicio: dataInicio,
+            dataFim: dataFim,
+            itens: 100
         });
         return response.dados || [];
     }

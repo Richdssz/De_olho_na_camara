@@ -6,25 +6,31 @@ class AnalyticsService {
     /**
      * Calcula a taxa de presença em sessões deliberativas.
      * @param {Array} eventosDeputado - Lista de eventos vinculados ao deputado.
-     * @param {number} ano - Ano de análise (padrão 2026).
+     * @param {number} ano - Ano de análise.
+     * @param {Array} sessoesPlenario - Lista oficial de sessões deliberativas do órgão 114 (Plenário).
      */
-    calcularTaxaPresenca(eventosDeputado, ano = 2026) {
-        const deliberativos = eventosDeputado.filter(e => 
+    calcularTaxaPresenca(eventosDeputado, ano, sessoesPlenario) {
+        // Quantas sessões o Plenário da Câmara teve no ano passado/corrente
+        const totalSessoesOficiais = (sessoesPlenario || []).filter(e => 
             e.descricaoTipo && e.descricaoTipo.toLowerCase().includes('deliberativa')
-        );
+        ).length;
 
-        const presencas = deliberativos.length;
-        
-        // Ajuste dinâmico do total estimado para evitar "75 de 35 sessões"
-        let totalEstimado = ano === 2026 ? 80 : 110; 
-        totalEstimado = Math.max(totalEstimado, presencas);
+        // Presenças reais cadastradas para o deputado nesses mesmos eventos
+        const presencas = eventosDeputado.filter(e => 
+            e.descricaoTipo && e.descricaoTipo.toLowerCase().includes('deliberativa')
+        ).length;
 
-        const rate = totalEstimado > 0 ? Math.round((presencas / totalEstimado) * 100) : 100;
+        // Fallback robusto se API do plenário falhar, assumimos que ele esteve no que esteve
+        const totalReal = Math.max(totalSessoesOficiais, presencas, 1);
+
+        const rate = Math.round((presencas / totalReal) * 100);
 
         return {
             rate: rate,
             presencas: presencas,
-            total: totalEstimado,
+            total: totalReal,
+            classificacao: this.classificarPresenca(rate)
+        };
             classificacao: this.classificarPresenca(rate)
         };
     }

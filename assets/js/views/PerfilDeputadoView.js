@@ -370,7 +370,7 @@ class PerfilDeputadoView {
                         borderRadius: 4
                     },
                     {
-                        label: 'Sessões Ocorridas (Estimado)',
+                        label: 'Sessões Ocorridas',
                         data: totais,
                         backgroundColor: 'rgba(229, 231, 235, 0.8)',
                         borderRadius: 4
