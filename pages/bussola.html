@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bússola Ideológica - De Olho na Câmara</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Parse SDK -->
+    <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased h-screen flex overflow-hidden">
+    
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-900 text-white flex flex-col shadow-2xl shrink-0">
+        <div class="p-6 flex items-center gap-3 cursor-pointer" onclick="window.location.href='../index.html'">
+            <i class="fa-solid fa-eye text-3xl text-teal-400"></i>
+            <h1 class="text-2xl font-bold tracking-wider">De olho na<br><span class="text-teal-400">câmara</span></h1>
+        </div>
+        
+        <nav class="flex-1 px-4 mt-6 space-y-3">
+            <a href="dashboard.html" class="flex items-center gap-4 px-5 py-3 text-gray-400 transition-colors hover:bg-teal-800 hover:text-white rounded-2xl">
+                <i class="fa-solid fa-chart-line text-xl"></i>
+                <span class="text-lg font-medium">Dashboard</span>
+            </a>
+            <a href="deputados.html" class="flex items-center gap-4 px-5 py-3 text-gray-400 transition-colors hover:bg-teal-800 hover:text-white rounded-2xl">
+                <i class="fa-solid fa-users text-xl"></i>
+                <span class="text-lg font-medium">Deputados</span>
+            </a>
+            <a href="meu-radar.html" class="flex items-center gap-4 px-5 py-3 text-gray-400 transition-colors hover:bg-teal-800 hover:text-white rounded-2xl">
+                <i class="fa-solid fa-satellite-dish text-xl"></i>
+                <span class="text-lg font-medium">Meu Radar</span>
+            </a>
+            <a href="partidos.html" class="flex items-center gap-4 px-5 py-3 text-gray-400 transition-colors hover:bg-teal-800 hover:text-white rounded-2xl">
+                <i class="fa-solid fa-handshake text-xl"></i>
+                <span class="text-lg font-medium">Partidos</span>
+            </a>
+            <a href="radar-anomalias.html" class="flex items-center gap-4 px-5 py-3 text-gray-400 transition-colors hover:bg-teal-800 hover:text-white rounded-2xl">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                <span class="text-lg font-medium">Alertas de Risco</span>
+            </a>
+            <a href="comparador.html" class="flex items-center gap-4 px-5 py-3 text-gray-400 transition-colors hover:bg-teal-800 hover:text-white rounded-2xl">
+                <i class="fa-solid fa-code-compare text-xl"></i>
+                <span class="text-lg font-medium">Comparador</span>
+            </a>
+            <a href="espectro.html" class="flex items-center gap-4 px-5 py-3 text-gray-400 transition-colors hover:bg-teal-800 hover:text-white rounded-2xl">
+                <i class="fa-solid fa-compass text-xl"></i>
+                <span class="text-lg font-medium">Espectro</span>
+            </a>
+            <a href="bussola.html" class="flex items-center gap-4 px-5 py-3 bg-teal-800 rounded-2xl text-green-400 transition-colors">
+                <i class="fa-solid fa-compass text-xl"></i>
+                <span class="text-lg font-medium">Bússola Ideológica</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t border-gray-800">
+            <div class="bg-gray-800 p-4 rounded-xl">
+                <p class="text-xs text-gray-400 mb-2">Dados oficiais abertos</p>
+                <a href="https://dadosabertos.camara.leg.br/" target="_blank" class="text-sm font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-2">
+                    API da Câmara <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f3f4f6]">
+        
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-100 py-4 px-8 flex justify-between items-center shrink-0">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Bússola Ideológica</h2>
+                <p class="text-sm text-gray-500">Descubra seu grau de alinhamento com os deputados com base em votações reais</p>
+            </div>
+
+            <!-- Auth Buttons -->
+            <div class="flex items-center gap-4">
+                <span id="user-display" class="hidden text-gray-700 font-medium text-sm"></span>
+                <button id="btn-login-modal" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-medium text-sm transition-colors">Entrar / Cadastrar</button>
+                <button id="btn-logout" class="hidden text-gray-500 hover:text-red-500 font-medium text-sm transition-colors">Sair</button>
+            </div>
+        </header>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto p-8 relative">
+            <div class="max-w-4xl mx-auto">
+
+                <!-- 1. ETAPA DE BOAS-VINDAS (INTRO) -->
+                <div id="step-intro" class="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm text-center flex flex-col items-center py-16">
+                    <div class="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center text-teal-600 text-4xl mb-6">
+                        <i class="fa-solid fa-compass"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Como você votaria?</h3>
+                    <p class="text-gray-500 max-w-lg mb-8 leading-relaxed">
+                        Responda a 6 perguntas simplificadas sobre projetos de lei reais e polêmicos que foram votados no plenário da Câmara dos Deputados em 2026. Cruzaremos suas respostas com o histórico oficial de votações de todos os deputados para mostrar quem mais representa suas ideias.
+                    </p>
+                    <button id="btn-start-quiz" class="bg-teal-700 hover:bg-teal-800 text-white px-8 py-3.5 rounded-full font-bold text-base transition-all transform hover:scale-105 shadow-md flex items-center gap-2">
+                        Iniciar Teste de Alinhamento <i class="fa-solid fa-chevron-right text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- 2. ETAPA DO QUIZ ATIVO -->
+                <div id="step-quiz" class="hidden bg-white rounded-2xl border border-gray-100 p-8 shadow-sm space-y-6">
+                    <!-- Progresso -->
+                    <div class="flex justify-between items-center text-sm font-semibold text-gray-400">
+                        <span id="quiz-progress-text">Questão 1 de 6</span>
+                        <span id="quiz-progress-percent">0% concluído</span>
+                    </div>
+                    <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                        <div id="quiz-progress-bar" class="bg-teal-600 h-full transition-all duration-300" style="width: 0%;"></div>
+                    </div>
+
+                    <!-- Conteúdo da Questão -->
+                    <div class="py-4 space-y-4 border-b border-gray-100 pb-6">
+                        <span id="quiz-question-category" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 uppercase tracking-wider">TEMA</span>
+                        <h4 id="quiz-question-title" class="text-xl font-extrabold text-gray-900 leading-snug">Título do Projeto de Lei</h4>
+                        <p id="quiz-question-desc" class="text-gray-600 text-base leading-relaxed">Resumo explicativo do projeto de lei em linguagem simples e clara.</p>
+                        
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-start gap-3 mt-4">
+                            <i class="fa-solid fa-circle-info text-teal-600 mt-1"></i>
+                            <div>
+                                <h5 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Contexto Legislativo</h5>
+                                <p id="quiz-question-context" class="text-xs text-gray-500 mt-0.5">Descrição oficial da proposição que gerou esta votação.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Resposta -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                        <button id="btn-vote-yes" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-2xl transition-all shadow hover:shadow-lg flex items-center justify-center gap-2 text-base">
+                            <i class="fa-solid fa-thumbs-up"></i> Apoiar
+                        </button>
+                        <button id="btn-vote-no" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-2xl transition-all shadow hover:shadow-lg flex items-center justify-center gap-2 text-base">
+                            <i class="fa-solid fa-thumbs-down"></i> Rejeitar
+                        </button>
+                        <button id="btn-vote-skip" class="bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 text-base border border-gray-200">
+                            <i class="fa-solid fa-forward"></i> Pular
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. ETAPA DE PROCESSAMENTO (LOADER) -->
+                <div id="step-loading" class="hidden bg-white rounded-2xl border border-gray-100 p-8 shadow-sm text-center flex flex-col items-center py-20">
+                    <div class="w-16 h-16 rounded-full border-4 border-teal-100 border-t-teal-600 animate-spin mb-6"></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Calculando Afinidade Ideológica</h3>
+                    <p id="loading-status-text" class="text-gray-500 max-w-xs">Carregando votos reais de 513 parlamentares na API da Câmara...</p>
+                </div>
+
+                <!-- 4. ETAPA DOS RESULTADOS -->
+                <div id="step-results" class="hidden space-y-8">
+                    <!-- Destaque "Match de Ouro" -->
+                    <div class="bg-gradient-to-r from-teal-900 to-teal-800 text-white rounded-2xl p-8 shadow-md relative overflow-hidden">
+                        <div class="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                            <div class="relative">
+                                <div class="w-24 h-24 rounded-full border-4 border-teal-400 overflow-hidden bg-white">
+                                    <img id="top-match-photo" src="" alt="Foto Deputado" class="w-full h-full object-cover">
+                                </div>
+                                <span class="absolute -bottom-2 -right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-900 shadow">TOP MATCH</span>
+                            </div>
+                            <div class="flex-1 text-center md:text-left space-y-1">
+                                <h4 class="text-xs font-bold text-teal-400 uppercase tracking-widest">Seu Representante Mais Alinhado</h4>
+                                <h3 id="top-match-name" class="text-2xl font-black">Deputado(a)</h3>
+                                <p id="top-match-party-uf" class="text-sm text-teal-200">Partido - UF</p>
+                                <p class="text-xs text-teal-300 mt-2 max-w-md">Este parlamentar votou da mesma forma que você na maioria dos projetos selecionados.</p>
+                            </div>
+                            <div class="bg-teal-950/60 border border-teal-700/50 rounded-2xl px-6 py-4 text-center shrink-0 min-w-[130px]">
+                                <span class="block text-xs font-bold text-teal-400 uppercase tracking-wider">Afinidade</span>
+                                <span id="top-match-percent" class="block text-4xl font-extrabold text-green-400 mt-1">100%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros Rápidos -->
+                    <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+                        <h4 class="text-base font-bold text-gray-900 shrink-0 flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-teal-600"></i> Filtrar Afinidades
+                        </h4>
+                        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                            <select id="filter-partido" class="px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500 font-semibold text-sm bg-gray-50 min-w-[160px]">
+                                <option value="">Todos os Partidos</option>
+                            </select>
+                            <select id="filter-uf" class="px-4 py-2 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-teal-500 font-semibold text-sm bg-gray-50 min-w-[120px]">
+                                <option value="">Todos os Estados</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Grid de Cards de Resultados -->
+                    <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Injetado dinamicamente -->
+                    </div>
+
+                    <!-- Botão de Reinício -->
+                    <div class="text-center pt-4">
+                        <button id="btn-restart-quiz" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-full font-bold text-sm transition-all flex items-center gap-2 mx-auto">
+                            <i class="fa-solid fa-rotate-left"></i> Refazer Quiz
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Comparação de Votos -->
+    <div id="comparison-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[85vh]">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-teal-900 text-white shrink-0">
+                <div>
+                    <h3 id="comp-modal-deputy-name" class="text-xl font-bold">Comparação Detalhada</h3>
+                    <p id="comp-modal-deputy-party-uf" class="text-xs text-teal-200">Deputado - Partido/UF</p>
+                </div>
+                <button id="btn-close-comp-modal" class="text-teal-200 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-400 font-bold uppercase text-[10px] tracking-wider">
+                                <th class="pb-3 pr-4">Projeto de Lei</th>
+                                <th class="pb-3 text-center px-4 w-[120px]">Você</th>
+                                <th class="pb-3 text-center px-4 w-[120px]">Deputado</th>
+                                <th class="pb-3 text-center w-[100px]">Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparison-table-body" class="divide-y divide-gray-100">
+                            <!-- Injetado dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0">
+                <button id="btn-close-comp-modal-footer" class="bg-teal-700 hover:bg-teal-800 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-colors">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login/Register Modal -->
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-900">Acesso ao Painel</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <form id="auth-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                    <input type="email" id="auth-email" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="auth-password" required class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all">
+                </div>
+                <div id="auth-error" class="hidden text-red-500 text-sm font-medium"></div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" id="btn-login" class="flex-1 bg-teal-700 hover:bg-teal-800 text-white py-3 rounded-2xl font-medium transition-colors">Login</button>
+                    <button type="button" id="btn-signup" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-2xl font-medium transition-colors">Criar Conta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts MVC -->
+    <script src="../assets/js/core/config.js"></script>
+    <script src="../assets/js/services/back4app.js"></script>
+    <script src="../assets/js/services/cache.js"></script>
+    <script src="../assets/js/services/camaraApi.js"></script>
+    <script src="../assets/js/services/analytics.js"></script>
+    
+    <script src="../assets/js/models/DeputadoModel.js"></script>
+    <script src="../assets/js/models/PartidoModel.js"></script>
+    <script src="../assets/js/models/AvaliacaoModel.js"></script>
+    
+    <script src="../assets/js/core/app.js"></script>
+    
+    <script src="../assets/js/views/BussolaView.js"></script>
+    <script src="../assets/js/controllers/BussolaController.js"></script>
+</body>
+</html>

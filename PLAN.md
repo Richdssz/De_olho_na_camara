@@ -134,56 +134,72 @@
 
 - [ ] Skeleton loaders para todas as chamadas de API
 - [ ] Estados vazios estilizados (zero resultados, erro de rede)
-- [ ] Transições e micro-animações suaves
-- [x] Página `sobre.html` com missão, APIs e licenças
-- [ ] Deploy público no GitHub Pages ou Vercel
-- [ ] Testes manuais em mobile (responsividade)
-- [x] Zero erros críticos no console
+- [ ] Transições 
+
+## ✅ FASE 2.3 — REFATORAÇÃO DE PARTIDOS E DEPUTADOS *(Concluída)*
+
+**Objetivo:** Expansão do perfil do deputado e consolidação de gastos de bancada.
+- [x] Integração com API da Wikipedia para resumos históricos e imagens/logos de partidos.
+- [x] Consolidação de gastos de bancada por partido.
+- [x] Gráfico de espectro político interno (Scatter Plot) nos perfis de partido.
+- [x] Novos KPIs do deputado: ROI Parlamentar e Taxa de Sucesso Legislativo.
+- [x] Seção de Órgãos, Frentes Parlamentares, Histórico e Discursos do deputado.
+
+## ✅ SPRINT 5 — COMPARADOR LADO A LADO *(Concluída)*
+
+**Objetivo:** Permitir comparação direta de dois deputados ou dois partidos políticos.
+- [x] Criação de `comparador.html` com layout responsivo e elegante.
+- [x] Integração em MVC: `ComparadorView.js` e `ComparadorController.js`.
+- [x] Comparação gráfica e estatística lado a lado (Gastos, Presença, Coesão, ROI, Sucesso, Proposições).
+- [x] Seleção dinâmica e inteligente com autocomplete para os deputados/partidos.
+- [x] Links de navegação adicionados à sidebar de todas as páginas da plataforma.
+
+## ✅ SPRINT 10 — MAPA DE ESPECTRO IDEOLÓGICO REAL *(Concluída)*
+
+**Objetivo:** Exibir o espectro ideológico dos deputados baseado em dados reais de votações.
+- [x] Criação de `espectro.html`, `EspectroView.js` e `EspectroController.js`.
+- [x] Gráfico Scatter Plot 2D de posicionamento dos deputados (Eixo Econômico vs Eixo Social).
+- [x] Classificação ideológica real baseada no alinhamento de votações com projetos selecionados.
+- [x] Filtros por partido, UF e busca por nome no mapa de espectro.
+
+## ✅ SPRINT 11 — GAMIFICAÇÃO CÍVICA *(Concluída)*
+
+**Objetivo:** Distribuir insígnias (badges) para os deputados com base no comportamento.
+- [x] Criação do motor de badges no `AnalyticsService.js` (`avaliarBadges`).
+- [x] Badges implementadas: "Presença de Ouro" (>=95% presença), "Economista" (gasto <= 50% da média), "Leal ao Partido" (coesão >= 90%), "Autor Prolífico" (>= 50 proposições).
+- [x] Exibição em cards flutuantes com animação de hover e tooltips descritivas no perfil do deputado.
+
+## 🕐 SPRINT 9 — BÚSSOLA IDEOLÓGICA *(Em Progresso)*
+
+**Objetivo:** Um quiz de 6 a 10 perguntas baseado em votações reais de temas polêmicos da Câmara para dar match com deputados.
+- [ ] Criação de `bussola.html` com design premium (Teal/Green) e sem emojis.
+- [ ] Implementação de `BussolaView.js` para renderizar o quiz interativo e a tela de match.
+- [ ] Implementação de `BussolaController.js` para gerenciar o estado das respostas e realizar o match de votações.
+- [ ] Algoritmo de match ideológico: cruzar as respostas "Sim"/"Não" do usuário com os votos reais dos deputados e retornar ranking de afinidade.
+- [ ] Integrar no menu sidebar de todas as páginas da plataforma.
+
+## 📈 FASE 2 — ACOMPANHAMENTO DO STATUS
+
+- [x] **Fase 2.3 (Refatoração de Partidos e Deputados)** — Concluído
+- [x] **Sprint 5** — Comparador lado a lado — Concluído
+- [ ] **Sprint 6** — Geração de PDFs e download em CSV (por último / baixa importância)
+- [ ] **Sprint 7** — Heatmap geográfico de votações por estado
+- [ ] **Sprint 8** — Fórum e Termômetro da Opinião Pública (Fórum pendente, Termômetro OK)
+- [/] **Sprint 9** — Bússola Ideológica (quiz + match) *(Em execução)*
+- [x] **Sprint 10** — Mapa de espectro ideológico baseado em votos reais — Concluído
+- [x] **Sprint 11** — Gamificação: badges por metas de atuação parlamentar — Concluído
 
 ---
 
-## 📈 FASE 2
+## 🤖 FASE 3 — BACKLOG DE INOVAÇÃO (IA & FUTURO)
 
-- [x] **Fase 2.3 (Refatoracao de Partidos e Deputados)** — Expansao do Perfil do Deputado e Refatoracao Completa de Partidos (Integracao Wikipedia, Consolidacao de Gastos de Bancada, Logos Oficiais e Scatter Plot de Espectro Interno)
-- [x] **Sprint 5** — Comparador lado a lado de dois parlamentares ou partidos
-- [ ] **Sprint 6** — Geracao de PDFs e download em CSV(por ultimo(baixa importancia))
-- [ ] **Sprint 7** — Heatmap geografico de votacoes por estado
-- [/] **Sprint 8** — Forum e Termometro da Opiniao Publica em proposicoes (Termometro implementado)
-- [ ] **Sprint 9** — Bussola Ideologica (quiz + algoritmo de match com politicos)
-- [x] **Sprint 10** — Mapa de espectro ideologico baseado em votos reais
-- [x] **Sprint 11** — Gamificacao: badges por metas de atuacao parlamentar
-
-### 🧠 Módulo de Inteligência de Gastos e Eficiência (Fase 2)
-
-Este módulo introduz novas ferramentas analíticas de auditoria cidadã, cruzando dados financeiros com a atuação legislativa real para medir a eficiência dos parlamentares.
-
-#### 1. ROI Parlamentar (Custo-Efetividade)
-Cruzamento do valor total gasto em cota parlamentar (escritório, viagens) com a produtividade real (quantidade de PLs e PECs propostos e efetivamente aprovados).
-- **Arquitetura e Integração (API da Câmara):**
-  - Obter despesas via `GET /deputados/{id}/despesas` para totalizar os gastos.
-  - Obter proposições via `GET /proposicoes?siglaTipo=PL,PEC&idDeputadoAutor={id}`.
-  - Verificar a situação da proposição usando o `codSituacao` retornado em `GET /proposicoes/{id}` ou mapeado através de `GET /referencias/proposicoes/codSituacao` para confirmar o que virou norma jurídica.
-
-#### 2. Raio-X de Gastos (Follow the Money)
-Categorização visual de onde o dinheiro da cota está indo (marketing, aluguel, passagens aéreas) usando gráficos com Chart.js.
-- **Arquitetura e Integração (API da Câmara):**
-  - Agregar despesas por categoria usando `GET /deputados/{id}/despesas` e o campo `tipoDespesa`.
-  - Usar `GET /referencias/deputados/tipoDespesa` para mapeamento padronizado de tipos de despesas se necessário.
-  - Componentização visual: Renderizar com Chart.js (`doughnut` ou `polarArea`) dentro de `assets/js/views/PerfilDeputadoView.js`.
-
-#### 3. Ranking de Economia
-Um placar listando os deputados mais econômicos, cruzando a economia com a taxa de presença para não premiar parlamentares que não gastam simplesmente por serem ausentes.
-- **Arquitetura e Integração (API da Câmara):**
-  - **Dados Financeiros:** Consumir os arquivos de dados abertos em lote `http://www.camara.leg.br/cotas/Ano-{ano}.csv.zip` para calcular de forma ágil a média de todos os deputados (Backend/Workers ou Caching estruturado).
-  - **Dados de Presença:** Download em lote `http://dadosabertos.camara.leg.br/arquivos/eventosPresencaDeputados/json/eventosPresencaDeputados-{ano}.json` (ou consumir iterativamente `/deputados/{id}/eventos`).
-  - Lógica: Atribuir pesos que penalizam ausências no ranking de menor gasto.
-
-#### 4. Taxa de Sucesso Legislativo
-Indicador de quantas leis o deputado propôs que realmente viraram lei versus as que foram arquivadas.
-- **Arquitetura e Integração (API da Câmara):**
-  - Listar todas as propostas com `GET /proposicoes?idDeputadoAutor={id}`.
-  - Mapear a situação de cada uma consultando `GET /referencias/proposicoes/codSituacao` e `GET /referencias/situacoesProposicao`.
-  - Cálculo percentual: `(Projetos Aprovados / Total de Projetos Apresentados) * 100`, exposto em formato de termômetro de performance ou gauge chart.
+Roadmap de longo prazo derivado de `IDEIAS.md` para expansão e escala da plataforma:
+1. **Tradutor de "Politiquês" com IA** (Gemini/OpenAI) para resumir ementas de projetos de lei em termos acessíveis ao cidadão.
+2. **Follow the Money V2** (Financiamento vs. Votação): integração profunda com prestação de contas do TSE para detectar conflitos de interesses.
+3. **Alertas Cidadãos (Notificações)**: disparo automático de e-mails/alertas se deputados monitorados realizarem gastos elevados ou mudarem votos.
+4. **Gamificação do Cidadão (Auditor Cívico)**: sistema de pontuação (XP) e níveis para recompensar usuários engajados na fiscalização pública.
+5. **Heatmap de Emendas Parlamentares**: visualização no mapa de municípios indicando onde cada recurso orçamentário foi investido.
+6. **Progressive Web App (PWA)**: suporte a modo offline, instalação direta no celular e VLibras para acessibilidade total.
 
 ---
 
