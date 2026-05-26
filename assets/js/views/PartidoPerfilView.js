@@ -143,7 +143,11 @@ class PartidoPerfilView {
     preencherWikipedia(wikiData) {
         if (this.wikiEspectro) this.wikiEspectro.textContent = wikiData.espectro || "Nao documentado";
         if (this.wikiIdeologia) this.wikiIdeologia.textContent = wikiData.ideologia || "Nao documentada";
-        if (this.wikiResumo) this.wikiResumo.textContent = wikiData.resumo || "Resumo indisponivel.";
+        if (this.wikiResumo) {
+            this.wikiResumo.textContent = wikiData.resumo || "Resumo indisponivel.";
+            this.wikiResumo.classList.remove('max-h-64', 'max-h-96', 'overflow-y-auto', 'overflow-hidden');
+            this.wikiResumo.classList.add('h-auto');
+        }
         if (this.wikiLink && wikiData.font) {
             this.wikiLink.href = wikiData.font;
             this.wikiLink.classList.remove('hidden');
@@ -169,6 +173,40 @@ class PartidoPerfilView {
     }
 
     preencherDadosFinanceiros(financeData, ano) {
+        if (!financeData || !financeData.total || financeData.total === 0) {
+            if (this.totalGastoBancada) this.totalGastoBancada.textContent = 'Sem dados';
+            if (this.mediaGastoBancada) this.mediaGastoBancada.textContent = 'Sem dados';
+            if (this.anoFinanceiroDisplay) this.anoFinanceiroDisplay.textContent = `Ano: ${ano}`;
+
+            if (this.canvasFinance) {
+                if (this.financeChartInstance) {
+                    this.financeChartInstance.destroy();
+                }
+                this.financeChartInstance = new Chart(this.canvasFinance, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sem dados de despesas'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['rgba(229, 231, 235, 1)'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        circumference: 180,
+                        rotation: -90,
+                        plugins: {
+                            legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } },
+                            tooltip: { callbacks: { label: () => 'Sem dados' } }
+                        }
+                    }
+                });
+            }
+            return;
+        }
+
         if (this.totalGastoBancada) {
             this.totalGastoBancada.textContent = financeData.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }

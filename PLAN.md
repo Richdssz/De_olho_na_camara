@@ -6,9 +6,7 @@
 
 ## FILOSOFIA DE ENTREGA
 
-```
-"Entregue pequeno. Entregue funcionando. Itere com dados reais."
-```
+`"Entregue pequeno. Entregue funcionando. Itere com dados reais."`
 
 1. **Funciona** — entrega o valor mínimo sem errar
 2. **Funciona bem** — polish de UX, tratamento de edge cases
@@ -59,7 +57,6 @@
 - [x] Adicionar botões interativos de "👍 Apoiar" e "👎 Rejeitar" com contagem dinâmica de votos
 - [x] Validar autenticação: exigir login para poder computar ou alterar voto
 - [x] Ligar eventos dinâmicos no `PerfilDeputadoController.js` para atualizar o card na hora do clique
-
 
 ---
 
@@ -128,13 +125,13 @@
 
 ---
 
-## 🕐 SPRINT 4 — POLISH E DEPLOY *(Em Progresso)*
+## ✅ SPRINT 4 — POLISH E DEPLOY *(Concluída)*
 
 **Objetivo:** Produto polido, responsivo, sem erros e publicado.
 
-- [ ] Skeleton loaders para todas as chamadas de API
-- [ ] Estados vazios estilizados (zero resultados, erro de rede)
-- [ ] Transições 
+- [x] Skeleton loaders para todas as chamadas de API
+- [x] Estados vazios estilizados (zero resultados, erro de rede)
+- [x] Transições 
 
 ## ✅ FASE 2.3 — REFATORAÇÃO DE PARTIDOS E DEPUTADOS *(Concluída)*
 
@@ -144,6 +141,11 @@
 - [x] Gráfico de espectro político interno (Scatter Plot) nos perfis de partido.
 - [x] Novos KPIs do deputado: ROI Parlamentar e Taxa de Sucesso Legislativo.
 - [x] Seção de Órgãos, Frentes Parlamentares, Histórico e Discursos do deputado.
+- [x] Histórico de presenças real (integração direta com o endpoint de eventos da API).
+- [x] Gráfico de presenças dinâmico e sem proporção estática de 1:1, exibindo ausências.
+- [x] Tabela de votações nominais do Plenário com ementa real e cruzamento dinâmico.
+- [x] Modal interativo com detalhes da proposição e placar geral de votos.
+- [x] Campo de pesquisa e filtro dinâmico de partidos na aba de partidos.
 
 ## ✅ SPRINT 5 — COMPARADOR LADO A LADO *(Concluída)*
 
@@ -182,9 +184,9 @@
 
 - [x] **Fase 2.3 (Refatoração de Partidos e Deputados)** — Concluído
 - [x] **Sprint 5** — Comparador lado a lado — Concluído
-- [ ] **Sprint 6** — Geração de PDFs e download em CSV (por último / baixa importância)
+- [x] **Sprint 6** — Geração de PDFs e download em CSV — Concluído
 - [ ] **Sprint 7** — Heatmap geográfico de votações por estado
-- [ ] **Sprint 8** — Fórum e Termômetro da Opinião Pública (Fórum pendente, Termômetro OK)
+- [x] **Sprint 8** — Fórum e Termômetro da Opinião Pública — Concluído
 - [x] **Sprint 9** — Bússola Ideológica (quiz + match) — Concluído
 - [x] **Sprint 10** — Mapa de espectro ideológico baseado em votos reais — Concluído
 - [x] **Sprint 11** — Gamificação: badges por metas de atuação parlamentar — Concluído

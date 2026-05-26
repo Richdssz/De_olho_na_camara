@@ -10,25 +10,34 @@ class AnalyticsService {
      * @param {Array} sessoesPlenario - Lista oficial de sessões deliberativas do órgão 114 (Plenário).
      */
     calcularTaxaPresenca(eventosDeputado, ano, sessoesPlenario) {
-        // Quantas sessões o Plenário da Câmara teve no ano passado/corrente
+        // Quantas sessoes o Plenario da Camara teve no ano passado/corrente
         const totalSessoesOficiais = (sessoesPlenario || []).filter(e => 
             e.descricaoTipo && e.descricaoTipo.toLowerCase().includes('deliberativa')
         ).length;
 
-        // Presenças reais cadastradas para o deputado nesses mesmos eventos
-        const presencas = eventosDeputado.filter(e => 
+        // Presencas reais cadastradas para o deputado nesses mesmos eventos
+        const presencas = (eventosDeputado || []).filter(e => 
             e.descricaoTipo && e.descricaoTipo.toLowerCase().includes('deliberativa')
         ).length;
 
-        // Fallback robusto se API do plenário falhar, assumimos que ele esteve no que esteve
-        const totalReal = Math.max(totalSessoesOficiais, presencas, 1);
+        if (totalSessoesOficiais === 0 && presencas === 0) {
+            return {
+                rate: 0,
+                presencas: 0,
+                total: 0,
+                semDados: true,
+                classificacao: { texto: 'Sem dados', classe: 'bg-gray-50 text-gray-700 border-gray-200' }
+            };
+        }
 
-        const rate = Math.round((presencas / totalReal) * 100);
+        const totalReal = Math.max(totalSessoesOficiais, presencas);
+        const rate = totalReal > 0 ? Math.round((presencas / totalReal) * 100) : 0;
 
         return {
             rate: rate,
             presencas: presencas,
             total: totalReal,
+            semDados: false,
             classificacao: this.classificarPresenca(rate)
         };
     }

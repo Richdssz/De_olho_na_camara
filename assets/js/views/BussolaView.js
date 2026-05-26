@@ -44,6 +44,9 @@ class BussolaView {
         this.compTableBody = document.getElementById('comparison-table-body');
         this.btnCloseCompModal = document.getElementById('btn-close-comp-modal');
         this.btnCloseCompModalFooter = document.getElementById('btn-close-comp-modal-footer');
+
+        // Instância do gráfico do quadrante (para destruir e recriar ao reiniciar)
+        this._quadranteChart = null;
     }
 
     /**
@@ -345,6 +348,173 @@ class BussolaView {
                     this.fecharModalComparacao();
                 }
             });
+        }
+    }
+    /**
+     * Renderiza o Quadrante Político usando Chart.js Scatter.
+     * @param {{ econ: number, social: number }} pontoUsuario
+     * @param {Array} pontosDeputados - deputados com { econScore, socialScore, distancia, nome, siglaPartido }
+     * @param {Object} labelInfo - objeto retornado por calcularLabel()
+     */
+    renderizarQuadrante(pontoUsuario, pontosDeputados, labelInfo) {
+        const canvas = document.getElementById('quadrante-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+
+        if (this._quadranteChart) {
+            this._quadranteChart.destroy();
+            this._quadranteChart = null;
+        }
+
+        const ctx = canvas.getContext('2d');
+
+        // Plugin: fundo dos 4 quadrantes com labels nos cantos
+        const quadrantBgPlugin = {
+            id: 'quadrantBackground',
+            beforeDraw(chart) {
+                const { ctx, chartArea: { left, right, top, bottom, width, height } } = chart;
+                const midX = left + width  / 2;
+                const midY = top  + height / 2;
+                ctx.save();
+
+                const regioes = [
+                    { x: midX, y: top,  w: width/2, h: height/2, color: 'rgba(99, 102, 241, 0.07)',  label: 'Liberal-Progressista',   lx: right - 8, ly: top + 14, align: 'right' },
+                    { x: left, y: top,  w: width/2, h: height/2, color: 'rgba(14, 165, 233, 0.07)', label: 'Social-Democrata',        lx: left  + 8, ly: top + 14, align: 'left'  },
+                    { x: midX, y: midY, w: width/2, h: height/2, color: 'rgba(245, 158, 11, 0.07)', label: 'Liberal-Conservador',     lx: right - 8, ly: bottom - 8, align: 'right' },
+                    { x: left, y: midY, w: width/2, h: height/2, color: 'rgba(239, 68, 68, 0.07)',  label: 'Nac.-Conservador',        lx: left  + 8, ly: bottom - 8, align: 'left'  },
+                ];
+
+                regioes.forEach(r => {
+                    ctx.fillStyle = r.color;
+                    ctx.fillRect(r.x, r.y, r.w, r.h);
+                    ctx.fillStyle  = 'rgba(100, 116, 139, 0.5)';
+                    ctx.font       = 'bold 9.5px Inter, sans-serif';
+                    ctx.textAlign  = r.align;
+                    ctx.fillText(r.label, r.lx, r.ly);
+                });
+
+                // Linhas divisórias tracejadas
+                ctx.strokeStyle = 'rgba(156, 163, 175, 0.45)';
+                ctx.lineWidth   = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath(); ctx.moveTo(midX, top);  ctx.lineTo(midX, bottom); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(left, midY); ctx.lineTo(right, midY);  ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.restore();
+            }
+        };
+
+        // Classificar pontos por distância para coloração
+        const getCorPonto = (dist) => {
+            if (dist < 15)  return 'rgba(16, 185, 129, 0.85)';
+            if (dist < 30)  return 'rgba(245, 158, 11, 0.85)';
+            return 'rgba(239, 68, 68, 0.75)';
+        };
+
+        const todos    = pontosDeputados.map(d => ({ x: d.econScore, y: d.socialScore, nome: d.nome, partido: d.siglaPartido, dist: d.distancia }));
+        const top20    = pontosDeputados.slice(0, 20).map(d => ({ x: d.econScore, y: d.socialScore, nome: d.nome, partido: d.siglaPartido, dist: d.distancia }));
+        const userData = [{ x: pontoUsuario.econ, y: pontoUsuario.social }];
+
+        this._quadranteChart = new Chart(ctx, {
+            type: 'scatter',
+            plugins: [quadrantBgPlugin],
+            data: {
+                datasets: [
+                    {
+                        label: 'Deputados',
+                        data: todos,
+                        backgroundColor: 'rgba(148, 163, 184, 0.22)',
+                        borderColor: 'transparent',
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: 'rgba(148, 163, 184, 0.9)'
+                    },
+                    {
+                        label: 'Mais Próximos',
+                        data: top20,
+                        backgroundColor: top20.map(d => getCorPonto(d.dist)),
+                        borderColor: '#ffffff',
+                        borderWidth: 1.5,
+                        pointRadius: 6,
+                        pointHoverRadius: 9
+                    },
+                    {
+                        label: 'Você',
+                        data: userData,
+                        backgroundColor: 'rgba(251, 191, 36, 1)',
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        pointRadius: 13,
+                        pointHoverRadius: 15,
+                        pointStyle: 'star'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1,
+                animation: { duration: 700, easing: 'easeOutQuart' },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label(ctx) {
+                                if (ctx.datasetIndex === 2) return '⭐ Você';
+                                const d = ctx.raw;
+                                return d.nome ? `${d.nome} (${d.partido})` : `Econ: ${ctx.parsed.x}, Social: ${ctx.parsed.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        min: 0, max: 100,
+                        title: { display: true, text: '← Estatista   |   Eixo Econômico   |   Liberal →', color: '#94a3b8', font: { size: 10, weight: '600' } },
+                        grid:  { color: 'rgba(226, 232, 240, 0.5)' },
+                        ticks: {
+                            font: { size: 9 }, color: '#94a3b8',
+                            callback: v => v === 0 ? 'Estatista' : v === 50 ? 'Centro' : v === 100 ? 'Liberal' : ''
+                        }
+                    },
+                    y: {
+                        min: 0, max: 100,
+                        title: { display: true, text: '← Conservador   |   Eixo Social   |   Progressista →', color: '#94a3b8', font: { size: 10, weight: '600' } },
+                        grid:  { color: 'rgba(226, 232, 240, 0.5)' },
+                        ticks: {
+                            font: { size: 9 }, color: '#94a3b8',
+                            callback: v => v === 0 ? 'Conservador' : v === 50 ? 'Centro' : v === 100 ? 'Progressista' : ''
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Injeta o badge de identidade ideológica e as coordenadas do usuário.
+     * @param {Object} labelInfo - objeto { label, cor, bg, text, desc } de calcularLabel()
+     * @param {{ econ: number, social: number }} pontuacao
+     */
+    renderizarBadgeIdeologico(labelInfo, pontuacao) {
+        const badgeEl  = document.getElementById('badge-ideologico');
+        const coordsEl = document.getElementById('coords-display');
+
+        if (badgeEl && labelInfo) {
+            badgeEl.innerHTML = `
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-base ${labelInfo.bg} ${labelInfo.text} border-2 mb-2" style="border-color: ${labelInfo.cor}55;">
+                    <i class="fa-solid fa-compass-drafting text-sm"></i>
+                    ${labelInfo.label}
+                </div>
+                <p class="text-xs text-gray-500 max-w-xs leading-relaxed">${labelInfo.desc}</p>
+            `;
+        }
+
+        if (coordsEl && pontuacao) {
+            coordsEl.innerHTML = `
+                <span class="font-semibold text-gray-600">Econ: ${pontuacao.econ}</span>
+                <span class="text-gray-300 mx-1.5">|</span>
+                <span class="font-semibold text-gray-600">Social: ${pontuacao.social}</span>
+            `;
         }
     }
 }

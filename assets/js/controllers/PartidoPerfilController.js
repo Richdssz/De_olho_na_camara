@@ -35,26 +35,39 @@ class PartidoPerfilController {
 
     async handleFiltroAnoChange(ano) {
         this.anoAnalise = parseInt(ano) || 2026;
-        await this.carregarDespesasBancadaObjeto();
+        // Limpar o estado anterior para evitar exibição de dados velhos
+        this.view.mostrarCarregamento();
+        this.membrosGlobal = [];
+        
+        // Recarregar os dados partidários e forçar re-renderização completa da View com o novo ano
+        await this.carregarDadosPartido();
     }
 
     async carregarDadosPartido() {
         try {
             this.view.mostrarCarregamento();
 
-            // 1. Busca todos os deputados (para filtrar os membros deste partido)
-            // 2. Calcula as taxas de coesao partidaria (com 10 votacoes)
-            // 3. Busca detalhes extras do partido (se o ID estiver disponivel)
-            // 4. Busca lista geral de partidos para obter o urlLogo como fallback
+            // 1. Busca deputados, coesao e detalhes partidarios passando o ano escolhido
             const [deputadosResp, coesaoResp, partidoInfo, partidosListResp] = await Promise.all([
-                window.DeputadoModel.listar(), // Cache de 1h
-                window.PartidoModel.calcularCoesaoPartidos(10), // Cache de 1h
+                window.DeputadoModel.listar(this.anoAnalise),
+                window.PartidoModel.calcularCoesaoPartidos(10, this.anoAnalise),
                 this.partidoIdGlobal ? window.camaraApi.buscarPartido(this.partidoIdGlobal).catch(() => null) : Promise.resolve(null),
-                window.PartidoModel.listar()
+                window.PartidoModel.listar(this.anoAnalise)
             ]);
 
-            if (!deputadosResp.success) {
-                this.view.mostrarErro("Falha ao carregar deputados da bancada.");
+            // Se falhar a listagem de deputados ou vier vazia
+            if (!deputadosResp.success || !deputadosResp.data || deputadosResp.data.length === 0) {
+                this.view.preencherDadosPerfil({
+                    sigla: this.partidoSiglaGlobal,
+                    nome: this.partidoSiglaGlobal,
+                    urlLogo: null,
+                    totalMembros: 0,
+                    coesao: null
+                });
+                this.view.renderizarMembros([]);
+                this.view.preencherDadosFinanceiros({ total: 0, mediaPorDeputado: 0, porTipo: {} }, this.anoAnalise);
+                this.view.renderizarEspectroInterno([]);
+                this.view.mostrarConteudo();
                 return;
             }
 
@@ -122,15 +135,21 @@ class PartidoPerfilController {
     }
 
     async carregarDespesasBancadaObjeto() {
-        if (!this.membrosGlobal || this.membrosGlobal.length === 0) return;
+        if (!this.membrosGlobal || this.membrosGlobal.length === 0) {
+            this.view.preencherDadosFinanceiros({ total: 0, mediaPorDeputado: 0, porTipo: {} }, this.anoAnalise);
+            return;
+        }
         this.view.mostrarLoaderFinancas();
         try {
             const despesasResp = await window.PartidoModel.calcularDespesasBancada(this.membrosGlobal, this.anoAnalise);
             if (despesasResp.success && despesasResp.data) {
                 this.view.preencherDadosFinanceiros(despesasResp.data, this.anoAnalise);
+            } else {
+                this.view.preencherDadosFinanceiros({ total: 0, mediaPorDeputado: 0, porTipo: {} }, this.anoAnalise);
             }
         } catch (err) {
             console.error("Erro ao carregar despesas consolidadas da bancada:", err);
+            this.view.preencherDadosFinanceiros({ total: 0, mediaPorDeputado: 0, porTipo: {} }, this.anoAnalise);
         }
     }
 

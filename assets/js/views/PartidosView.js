@@ -5,16 +5,34 @@
 class PartidosView {
     constructor() {
         this.grid = document.getElementById('partidos-grid');
+        this.hemicicloChartInstance = null;
     }
 
     mostrarLoader() {
         if (!this.grid) return;
-        this.grid.innerHTML = `
-            <p class="text-gray-500 col-span-full text-center py-20 font-medium">
-                <i class="fa-solid fa-circle-notch fa-spin text-4xl text-teal-600 mb-4 block"></i>
-                Carregando estatísticas dos partidos...
-            </p>
-        `;
+        this.grid.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+            const skeleton = document.createElement('div');
+            skeleton.className = 'bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between animate-pulse h-48';
+            skeleton.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-gray-200 shrink-0"></div>
+                        <div class="h-6 bg-gray-200 rounded w-24"></div>
+                    </div>
+                    <div class="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+                <div class="border-t border-gray-100 pt-4 flex justify-between items-center mt-auto">
+                    <div class="space-y-2">
+                        <div class="h-3 bg-gray-200 rounded w-20"></div>
+                        <div class="h-4 bg-gray-200 rounded w-16"></div>
+                    </div>
+                    <div class="w-10 h-10 bg-gray-200 rounded-full"></div>
+                </div>
+            `;
+            this.grid.appendChild(skeleton);
+        }
     }
 
     mostrarErro(mensagem = "Falha ao carregar os partidos políticos.") {
@@ -27,12 +45,85 @@ class PartidosView {
         `;
     }
 
+    renderizarHemiciclo(partidos) {
+        const canvasHemiciclo = document.getElementById('graficoHemiciclo');
+        if (!canvasHemiciclo) return;
+
+        if (this.hemicicloChartInstance) {
+            this.hemicicloChartInstance.destroy();
+        }
+
+        const labels = partidos.map(p => p.sigla);
+        const data = partidos.map(p => p.totalMembros);
+
+        this.hemicicloChartInstance = new Chart(canvasHemiciclo, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        'rgba(13, 148, 136, 0.8)',   // teal-600
+                        'rgba(34, 197, 94, 0.8)',    // green-500
+                        'rgba(59, 130, 246, 0.8)',   // blue-500
+                        'rgba(234, 179, 8, 0.8)',    // yellow-500
+                        'rgba(249, 115, 22, 0.8)',    // orange-500
+                        'rgba(168, 85, 247, 0.8)',    // purple-500
+                        'rgba(236, 72, 153, 0.8)',    // pink-500
+                        'rgba(99, 102, 241, 0.8)',    // indigo-500
+                        'rgba(20, 184, 166, 0.8)',    // teal-500
+                        'rgba(74, 222, 128, 0.8)',    // green-400
+                        'rgba(96, 165, 250, 0.8)',    // blue-400
+                        'rgba(250, 204, 21, 0.8)',    // yellow-400
+                        'rgba(251, 146, 60, 0.8)',    // orange-400
+                        'rgba(192, 132, 252, 0.8)',   // purple-400
+                        'rgba(244, 114, 182, 0.8)',   // pink-400
+                        'rgba(129, 140, 248, 0.8)',   // indigo-400
+                        'rgba(107, 114, 128, 0.8)',   // gray-500
+                        'rgba(156, 163, 175, 0.8)'    // gray-400
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                circumference: 180,
+                rotation: -90,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            font: { size: 10 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw} deputado(s)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     renderizarGrid(partidos) {
         if (!this.grid) return;
         this.grid.innerHTML = '';
 
         if (partidos.length === 0) {
-            this.grid.innerHTML = `<p class="text-gray-500 col-span-full text-center py-10 font-medium">Nenhum partido encontrado.</p>`;
+            this.grid.innerHTML = `
+                <div class="col-span-full text-center py-20 flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4">
+                        <i class="fa-solid fa-folder-open text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Nenhum dado encontrado</h3>
+                    <p class="text-gray-500 text-sm max-w-xs">Nao encontramos partidos com a busca realizada.</p>
+                </div>
+            `;
             return;
         }
 
@@ -52,8 +143,6 @@ class PartidosView {
                     coesaoTexto = `Coesão: ${p.coesao}% (Baixa)`;
                 }
             }
-
-            const placeholder = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23f0fdf4'/><text x='50' y='55' font-family='Arial,sans-serif' font-size='28' font-weight='bold' fill='%230f766e' text-anchor='middle' dominant-baseline='middle'>${p.sigla}</text></svg>`;
 
             const card = document.createElement('div');
             card.className = 'bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative group';

@@ -40,7 +40,7 @@ class DashboardView {
      * @param {Array} deputados 
      * @param {Array} monitoradosIds 
      */
-    renderizarGrid(deputados, monitoradosIds = []) {
+    renderizarGrid(deputados, monitoradosIds = [], ratingsMap = {}) {
         if (!this.grid) return;
         this.grid.innerHTML = '';
 
@@ -50,6 +50,11 @@ class DashboardView {
             const btnClass = isMonitored 
                 ? "flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors" 
                 : "flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors";
+
+            const media = ratingsMap[deputado.id];
+            const ratingHTML = (media && media > 0)
+                ? `<div class="flex items-center gap-1 text-sm font-bold mb-3"><i class="fa-solid fa-star text-yellow-400"></i> <span class="text-gray-700">${parseFloat(media).toFixed(1)} / 5</span></div>`
+                : `<div class="mb-3"><span class="text-gray-400 text-xs font-medium">Sem avaliações</span></div>`;
 
             const card = document.createElement('div');
             card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col';
@@ -62,13 +67,13 @@ class DashboardView {
                     <h4 class="font-bold text-lg text-gray-900 mb-1 leading-tight">
                         <a href="deputado-perfil.html?id=${deputado.id}" class="hover:text-blue-600 transition-colors">${deputado.nome}</a>
                     </h4>
-                    <p class="text-sm font-medium text-blue-600 mb-4">${deputado.siglaPartido} - ${deputado.siglaUf}</p>
-                    
-                    <div class="mt-auto grid grid-cols-2 gap-2">
-                        <button id="btn-radar-${deputado.id}" class="btn-radar ${btnClass}" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
+                    <p class="text-sm font-medium text-blue-600 mb-2">${deputado.siglaPartido} - ${deputado.siglaUf}</p>
+                    ${ratingHTML}
+                    <div class="mt-auto flex flex-col gap-2">
+                        <button id="btn-radar-${deputado.id}" class="btn-radar w-full flex items-center justify-center gap-2 ${isMonitored ? 'bg-teal-800 hover:bg-teal-900 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg text-sm font-medium transition-colors" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
                             ${btnText}
                         </button>
-                        <button class="btn-avaliar flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
+                        <button class="btn-avaliar w-full flex items-center justify-center gap-2 bg-teal-50 hover:bg-teal-100 text-teal-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors" data-id="${deputado.id}" data-nome="${deputado.nome.replace(/"/g, '&quot;')}">
                             <i class="fa-solid fa-star text-yellow-500"></i> Avaliar
                         </button>
                     </div>
@@ -106,10 +111,10 @@ class DashboardView {
         if (!btn) return;
         if (acao === 'added') {
             btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Acompanhando`;
-            btn.className = "btn-radar flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white py-2 px-2 rounded-lg text-sm font-medium transition-colors";
+            btn.className = "btn-radar w-full flex items-center justify-center gap-2 bg-teal-800 hover:bg-teal-900 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors";
         } else {
             btn.innerHTML = `<i class="fa-solid fa-eye"></i> Acompanhar`;
-            btn.className = "btn-radar flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-2 rounded-lg text-sm font-medium transition-colors";
+            btn.className = "btn-radar w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors";
         }
     }
 

@@ -91,6 +91,65 @@ class TermometroModel {
             return this._formatResponse(false, { apoios: 0, rejeicoes: 0, meuVoto: null }, 'db', error.message);
         }
     }
+
+    /**
+     * Salva uma opinião (comentário) sobre uma proposição no Back4App.
+     * @param {number} proposicaoId 
+     * @param {string} texto 
+     * @returns {Promise<Object>}
+     */
+    static async enviarOpiniao(proposicaoId, texto) {
+        try {
+            const currentUser = window.Back4AppService.getCurrentUser();
+            if (!currentUser) throw new Error("Você precisa estar logado para enviar uma opinião.");
+
+            if (!texto || !texto.trim()) throw new Error("O texto da opinião não pode estar vazio.");
+
+            const opiniaoObj = window.Back4AppService.createObj("Comentario");
+            opiniaoObj.set("usuario", currentUser);
+            opiniaoObj.set("proposicaoId", Number(proposicaoId));
+            opiniaoObj.set("texto", texto.trim());
+
+            await window.Back4AppService.saveObj(opiniaoObj);
+            
+            return this._formatResponse(true, {
+                id: opiniaoObj.id,
+                texto: texto.trim(),
+                usuario: currentUser.get("username"),
+                createdAt: opiniaoObj.createdAt || new Date()
+            }, 'db');
+        } catch (error) {
+            console.error("[TermometroModel] Erro ao enviar opinião:", error);
+            return this._formatResponse(false, null, 'db', error.message);
+        }
+    }
+
+    /**
+     * Busca opiniões recentes de uma proposição.
+     * @param {number} proposicaoId 
+     * @returns {Promise<Object>}
+     */
+    static async listarOpinioes(proposicaoId) {
+        try {
+            const results = await window.Back4AppService.getPublicAll("Comentario", { proposicaoId: Number(proposicaoId) });
+            
+            const opinioes = results.map(r => {
+                const userObj = r.get("usuario");
+                const username = userObj ? userObj.get("username") : "Anônimo";
+                return {
+                    id: r.id,
+                    texto: r.get("texto"),
+                    usuario: username,
+                    createdAt: r.get("createdAt") || r.createdAt
+                };
+            });
+
+            return this._formatResponse(true, opinioes, 'db');
+        } catch (error) {
+            console.error(`[TermometroModel] Erro ao listar opiniões da proposição ${proposicaoId}:`, error);
+            return this._formatResponse(false, [], 'db', error.message);
+        }
+    }
 }
 
 window.TermometroModel = TermometroModel;

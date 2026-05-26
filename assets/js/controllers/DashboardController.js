@@ -37,8 +37,28 @@ class DashboardController {
                 }
             }
 
-            // 3. Renderiza a tela
-            this.view.renderizarGrid(this.deputadosAtuais, monitoradosIds);
+            // 3. Busca notas médias
+            const ratingsMap = {};
+            try {
+                const avaliacoesResp = await window.Back4AppService.getPublicAll("Avaliacao", {}).catch(() => []);
+                avaliacoesResp.forEach(item => {
+                    const depId = item.get("deputadoId");
+                    const nota = item.get("nota") || 0;
+                    if (!ratingsMap[depId]) {
+                        ratingsMap[depId] = { total: 0, count: 0 };
+                    }
+                    ratingsMap[depId].total += nota;
+                    ratingsMap[depId].count++;
+                });
+                Object.keys(ratingsMap).forEach(id => {
+                    ratingsMap[id] = ratingsMap[id].total / ratingsMap[id].count;
+                });
+            } catch (err) {
+                console.error("Erro ao obter notas médias:", err);
+            }
+
+            // 4. Renderiza a tela
+            this.view.renderizarGrid(this.deputadosAtuais, monitoradosIds, ratingsMap);
             this.view.renderizarGraficoPartidos(this.deputadosAtuais);
 
         } catch (error) {
@@ -60,7 +80,27 @@ class DashboardController {
                 monitoradosIds = radarResp.data;
             }
         }
-        this.view.renderizarGrid(this.deputadosAtuais, monitoradosIds);
+        
+        const ratingsMap = {};
+        try {
+            const avaliacoesResp = await window.Back4AppService.getPublicAll("Avaliacao", {}).catch(() => []);
+            avaliacoesResp.forEach(item => {
+                const depId = item.get("deputadoId");
+                const nota = item.get("nota") || 0;
+                if (!ratingsMap[depId]) {
+                    ratingsMap[depId] = { total: 0, count: 0 };
+                }
+                ratingsMap[depId].total += nota;
+                ratingsMap[depId].count++;
+            });
+            Object.keys(ratingsMap).forEach(id => {
+                ratingsMap[id] = ratingsMap[id].total / ratingsMap[id].count;
+            });
+        } catch (err) {
+            console.error("Erro ao obter notas médias:", err);
+        }
+
+        this.view.renderizarGrid(this.deputadosAtuais, monitoradosIds, ratingsMap);
     }
 
     async handleAcompanhar(deputadoId, nomeDeputado, btnElement) {

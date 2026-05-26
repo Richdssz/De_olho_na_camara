@@ -1,28 +1,17 @@
 async function main() {
     try {
-        // Let's test different parameters for organ on /votacoes
-        const tests = [
-            'idOrgao=114',
-            'codOrgao=114',
-            'orgao=114',
-            'siglaOrgao=PLEN'
-        ];
-        
-        for (const test of tests) {
-            const url = `https://dadosabertos.camara.leg.br/api/v2/votacoes?${test}&itens=1`;
-            const res = await fetch(url);
-            console.log(`Query ${test} status:`, res.status);
-            if (res.status === 200) {
-                const json = await res.json();
-                console.log(`Query ${test} results length:`, json.dados?.length);
-            } else {
-                const errJson = await res.json();
-                console.log(`Query ${test} error:`, errJson);
-            }
-        }
+        console.log("Fetching detailed proposition 258057...");
+        const res = await fetch("https://dadosabertos.camara.leg.br/api/v2/proposicoes/258057");
+        const json = await res.json();
+        console.log("Proposition 258057 details:", JSON.stringify(json.dados, null, 2));
+
+        console.log("Fetching authors for 258057...");
+        const resAutores = await fetch("https://dadosabertos.camara.leg.br/api/v2/proposicoes/258057/autores");
+        const jsonAutores = await resAutores.json();
+        console.log("Authors count:", jsonAutores.dados?.length);
+        console.log("Authors sample:", jsonAutores.dados ? jsonAutores.dados.map(a => a.nome) : null);
     } catch (err) {
         console.error(err);
     }
 }
-
 main();

@@ -10,6 +10,8 @@
     <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -107,7 +109,31 @@
 
         <!-- Content Area (Scrollable) -->
         <div class="flex-1 overflow-y-auto p-8 relative">
-            <div class="max-w-7xl mx-auto">
+            <div class="max-w-7xl mx-auto space-y-8">
+                <!-- Painel do Hemiciclo -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-teal-600"></i> Composição da Câmara (Hemiciclo das Bancadas)
+                    </h3>
+                    <div class="relative w-full h-64 flex justify-center items-center">
+                        <canvas id="graficoHemiciclo"></canvas>
+                    </div>
+                </div>
+
+                <!-- Filtro de Busca de Partidos -->
+                <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-lg">Buscar Partido</h3>
+                        <p class="text-sm text-gray-500">Filtre a lista por sigla ou nome do partido</p>
+                    </div>
+                    <div class="relative w-full sm:w-80">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="busca-partido" placeholder="Pesquisar por sigla ou nome..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all text-sm font-medium">
+                    </div>
+                </div>
+
                 <!-- Grade de Partidos -->
                 <div id="partidos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <!-- Cards de partidos injetados aqui -->

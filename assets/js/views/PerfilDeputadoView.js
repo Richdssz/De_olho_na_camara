@@ -8,22 +8,27 @@ class PerfilDeputadoView {
         this.profileContent = document.getElementById('profile-content');
         this.errorMessage = document.getElementById('error-message');
         this.btnRadarPerfil = document.getElementById('btn-radar-perfil');
-        this.btnExportar = document.getElementById('btn-exportar');
 
         this.chartDespesas = null;
         this.chartEvolucaoGastos = null;
         this.chartPresenca = null;
+
+        this.modalVotacao = document.getElementById('detalhe-votacao-modal');
+        this.closeModalVotacaoBtn = document.getElementById('close-detalhe-votacao-modal');
+        
+        if (this.closeModalVotacaoBtn && this.modalVotacao) {
+            this.closeModalVotacaoBtn.addEventListener('click', () => this.fecharModalVotacao());
+            this.modalVotacao.addEventListener('click', (e) => {
+                if (e.target === this.modalVotacao) {
+                    this.fecharModalVotacao();
+                }
+            });
+        }
     }
 
     onAcompanharClick(callback) {
         if (this.btnRadarPerfil) {
             this.btnRadarPerfil.addEventListener('click', () => callback(this.btnRadarPerfil));
-        }
-    }
-
-    onExportarClick(callback) {
-        if (this.btnExportar) {
-            this.btnExportar.addEventListener('click', callback);
         }
     }
 
@@ -84,13 +89,31 @@ class PerfilDeputadoView {
         }
     }
 
+    renderizarMediaAvaliacao(media) {
+        const el = document.getElementById('perfil-media-avaliacao');
+        if (!el) return;
+        if (!media || media === 0) {
+            el.innerHTML = `<span class="text-gray-400 text-xs font-medium">Sem avaliações</span>`;
+        } else {
+            el.innerHTML = `<i class="fa-solid fa-star text-yellow-400"></i> <span class="text-gray-700">${parseFloat(media).toFixed(1)} / 5</span>`;
+        }
+    }
+
     renderizarPainelKPIs(presenca, gastos, coesao, proposicoes, roi, sucesso) {
         const presencaEl = document.getElementById('kpi-presenca');
         const badgePresenca = document.getElementById('badge-presenca');
-        if (presencaEl) presencaEl.textContent = `${presenca.rate}%`;
+        if (presencaEl) {
+            presencaEl.textContent = presenca.semDados ? 'Sem dados' : `${presenca.rate}%`;
+        }
         if (badgePresenca) {
-            badgePresenca.textContent = `${presenca.presencas} de ${presenca.total} sessoes - ${presenca.classificacao.texto}`;
-            badgePresenca.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold border ${presenca.classificacao.classe}`;
+            if (presenca.semDados) {
+                badgePresenca.textContent = 'Sem sessões deliberativas no período';
+                badgePresenca.className = 'px-2.5 py-0.5 rounded-full text-xs font-semibold border bg-gray-50 text-gray-700 border-gray-200';
+            } else {
+                const ausencias = Math.max(0, presenca.total - presenca.presencas);
+                badgePresenca.textContent = `${presenca.presencas} presenças, ${ausencias} ausências de ${presenca.total} sessões - ${presenca.classificacao.texto}`;
+                badgePresenca.className = `px-2.5 py-0.5 rounded-full text-xs font-semibold border ${presenca.classificacao.classe}`;
+            }
         }
 
         const gastoEl = document.getElementById('kpi-gasto-medio');
@@ -264,7 +287,7 @@ class PerfilDeputadoView {
             const dataFormatada = new Date(v.data).toLocaleDateString('pt-BR');
 
             const tr = document.createElement('tr');
-            tr.className = 'hover:bg-gray-50 transition border-b border-gray-100';
+            tr.className = 'hover:bg-teal-50/40 cursor-pointer transition border-b border-gray-100';
             tr.innerHTML = `
                 <td class="py-4 px-6 font-semibold text-gray-600">${dataFormatada}</td>
                 <td class="py-4 px-6 pr-8 font-medium text-gray-900 leading-snug">${v.descricao}</td>
@@ -274,6 +297,11 @@ class PerfilDeputadoView {
                 <td class="py-4 px-6 text-center font-semibold text-gray-700">${orientacaoVoto || '-'}</td>
                 <td class="py-4 px-6 text-center">${badgeAlinhamentoHTML}</td>
             `;
+            tr.addEventListener('click', () => {
+                if (this._onVotacaoClickCallback) {
+                    this._onVotacaoClickCallback(v.votacaoId, v.proposicaoId);
+                }
+            });
             corpo.appendChild(tr);
         });
     }
@@ -410,6 +438,35 @@ class PerfilDeputadoView {
         if (!ctx) return;
         if (this.chartPresenca) this.chartPresenca.destroy();
 
+        const totalSessoes = totais.reduce((a, b) => a + b, 0);
+        const canvasContainer = ctx.parentElement;
+        const noDataOverlayId = 'graficoPresenca-no-data';
+        let overlay = document.getElementById(noDataOverlayId);
+
+        if (totalSessoes === 0) {
+            ctx.classList.add('hidden');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = noDataOverlayId;
+                overlay.className = 'flex flex-col items-center justify-center h-full text-gray-500 font-medium py-10';
+                overlay.innerHTML = `
+                    <i class="fa-solid fa-chart-bar text-gray-300 text-3xl mb-2"></i>
+                    <span>Sem dados de presença para o período selecionado</span>
+                `;
+                canvasContainer.appendChild(overlay);
+            } else {
+                overlay.classList.remove('hidden');
+            }
+            return;
+        } else {
+            ctx.classList.remove('hidden');
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        const ausencias = totais.map((t, idx) => Math.max(0, t - presencas[idx]));
+
         this.chartPresenca = new Chart(ctx.getContext('2d'), {
             type: 'bar',
             data: {
@@ -422,9 +479,9 @@ class PerfilDeputadoView {
                         borderRadius: 4
                     },
                     {
-                        label: 'Sessões Ocorridas',
-                        data: totais,
-                        backgroundColor: 'rgba(229, 231, 235, 0.8)',
+                        label: 'Ausências Registradas',
+                        data: ausencias,
+                        backgroundColor: '#ef4444',
                         borderRadius: 4
                     }
                 ]
@@ -931,6 +988,204 @@ class PerfilDeputadoView {
                 </div>
             `;
         }).join('');
+    }
+
+    onVotacaoClick(callback) {
+        this._onVotacaoClickCallback = callback;
+    }
+
+    abrirModalVotacaoLoading() {
+        if (!this.modalVotacao) return;
+        this.modalVotacao.classList.remove('hidden');
+
+        const titulo = document.getElementById('modal-vot-titulo');
+        const ementa = document.getElementById('modal-vot-ementa');
+        const autores = document.getElementById('modal-vot-autores');
+        const placarSim = document.getElementById('modal-vot-placar-sim');
+        const placarNao = document.getElementById('modal-vot-placar-nao');
+        const placarAbst = document.getElementById('modal-vot-placar-abst');
+        const link = document.getElementById('modal-vot-link');
+
+        if (titulo) titulo.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-teal-600"></i> Carregando...';
+        if (ementa) ementa.textContent = 'Buscando detalhes do projeto na Câmara...';
+        if (autores) autores.textContent = 'Buscando autores...';
+        if (placarSim) placarSim.textContent = '-';
+        if (placarNao) placarNao.textContent = '-';
+        if (placarAbst) placarAbst.textContent = '-';
+        if (link) link.classList.add('hidden');
+    }
+
+    renderizarModalVotacao(votacaoId, prop, placar, autores, realPropId) {
+        if (!this.modalVotacao) return;
+
+        const titulo = document.getElementById('modal-vot-titulo');
+        const ementa = document.getElementById('modal-vot-ementa');
+        const autoresEl = document.getElementById('modal-vot-autores');
+        const placarSim = document.getElementById('modal-vot-placar-sim');
+        const placarNao = document.getElementById('modal-vot-placar-nao');
+        const placarAbst = document.getElementById('modal-vot-placar-abst');
+        const link = document.getElementById('modal-vot-link');
+
+        if (prop) {
+            const sigla = prop.siglaTipo || 'Votação';
+            const num = prop.numero ? ` ${prop.numero}` : '';
+            const ano = prop.ano ? `/${prop.ano}` : '';
+            if (titulo) titulo.textContent = `${sigla}${num}${ano}`;
+            if (ementa) ementa.textContent = prop.ementa || 'Sem ementa cadastrada.';
+        } else {
+            if (titulo) titulo.textContent = `Votação ${votacaoId}`;
+            if (ementa) ementa.textContent = 'Não foi possível encontrar uma proposição diretamente associada.';
+        }
+
+        if (autoresEl) autoresEl.textContent = autores || 'Não informado';
+
+        if (placarSim) placarSim.textContent = placar.sim || 0;
+        if (placarNao) placarNao.textContent = placar.nao || 0;
+        if (placarAbst) placarAbst.textContent = placar.abstencao || 0;
+
+        if (link && realPropId) {
+            link.href = `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${realPropId}`;
+            link.classList.remove('hidden');
+        } else if (link) {
+            link.classList.add('hidden');
+        }
+    }
+
+    onEnviarOpiniaoClick(callback) {
+        const btnEl = document.getElementById('btn-enviar-opiniao');
+        const inputEl = document.getElementById('forum-opiniao-input');
+        
+        const triggerCallback = () => {
+            const listaEl = document.getElementById('forum-opinioes-lista');
+            const proposicaoId = listaEl ? listaEl.dataset.proposicaoId : null;
+            const texto = inputEl ? inputEl.value.trim() : '';
+            if (proposicaoId && texto) {
+                callback(proposicaoId, texto);
+            } else if (!texto) {
+                alert("Por favor, digite sua opinião.");
+            }
+        };
+
+        if (btnEl) {
+            btnEl.addEventListener('click', triggerCallback);
+        }
+        if (inputEl) {
+            inputEl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    triggerCallback();
+                }
+            });
+        }
+    }
+
+    renderizarOpinioesForum(opinioes, realPropId) {
+        const inputEl = document.getElementById('forum-opiniao-input');
+        const btnEl = document.getElementById('btn-enviar-opiniao');
+        const listaEl = document.getElementById('forum-opinioes-lista');
+
+        if (!listaEl) return;
+
+        if (inputEl) inputEl.value = '';
+
+        if (!realPropId) {
+            if (inputEl) inputEl.disabled = true;
+            if (btnEl) btnEl.disabled = true;
+            listaEl.innerHTML = '<p class="text-gray-500 text-xs text-center py-4">Sem proposicao associada para opinar.</p>';
+            return;
+        }
+
+        if (inputEl) inputEl.disabled = false;
+        if (btnEl) btnEl.disabled = false;
+
+        listaEl.dataset.proposicaoId = realPropId;
+
+        if (!opinioes || opinioes.length === 0) {
+            listaEl.innerHTML = '<p class="text-gray-400 text-xs text-center py-4">Nenhuma opiniao enviada ainda. Seja o primeiro a comentar!</p>';
+            return;
+        }
+
+        listaEl.innerHTML = '';
+        opinioes.forEach(op => {
+            const dateStr = op.createdAt ? new Date(op.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+            
+            const itemEl = document.createElement('div');
+            itemEl.className = 'bg-gray-50 p-3 rounded-lg border border-gray-100 text-xs flex flex-col gap-1';
+            itemEl.innerHTML = `
+                <div class="flex justify-between items-center text-gray-500 font-bold">
+                    <span><i class="fa-solid fa-user text-teal-600"></i> ${op.usuario}</span>
+                    <span>${dateStr}</span>
+                </div>
+                <p class="text-gray-850 font-medium leading-relaxed">${op.texto}</p>
+            `;
+            listaEl.appendChild(itemEl);
+        });
+    }
+
+    renderizarBeneficios(beneficios) {
+        const secretariosEl = document.getElementById('benef-secretarios');
+        const salarioEl = document.getElementById('benef-salario');
+        const auxilioEl = document.getElementById('benef-auxilio');
+        const imovelEl = document.getElementById('benef-imovel');
+        const viagensEl = document.getElementById('benef-viagens');
+        const passaporteEl = document.getElementById('benef-passaporte');
+        const emendasValorEl = document.getElementById('benef-emendas-valor');
+        const emendasStatusEl = document.getElementById('benef-emendas-status');
+
+        if (secretariosEl) {
+            secretariosEl.textContent = beneficios 
+                ? `${beneficios.secretariosAtivos} comissionado(s) (Ativos: ${beneficios.secretariosAtivos} / Total: ${beneficios.secretariosTotal})` 
+                : 'Sem dados';
+        }
+
+        if (salarioEl) {
+            salarioEl.textContent = beneficios 
+                ? beneficios.salarioBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
+                : 'Sem dados';
+        }
+
+        if (auxilioEl) {
+            auxilioEl.textContent = beneficios ? beneficios.auxilioMoradia : 'Sem dados';
+        }
+
+        if (imovelEl) {
+            imovelEl.textContent = beneficios ? beneficios.imovelFuncional : 'Sem dados';
+        }
+
+        if (viagensEl) {
+            viagensEl.textContent = beneficios 
+                ? `${beneficios.missoesCount} viagem(ns)` 
+                : 'Sem dados';
+        }
+
+        if (passaporteEl) {
+            passaporteEl.textContent = beneficios ? beneficios.passaporte : 'Sem dados';
+        }
+
+        if (emendasValorEl) {
+            emendasValorEl.textContent = beneficios 
+                ? beneficios.emendasValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) 
+                : 'Sem dados';
+        }
+
+        if (emendasStatusEl && beneficios) {
+            emendasStatusEl.textContent = beneficios.emendasStatus;
+            let badgeClass = 'bg-gray-50 text-gray-700 border-gray-200';
+            if (beneficios.emendasStatus.includes('100%')) {
+                badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            } else if (beneficios.emendasStatus.includes('Execucao')) {
+                badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+            } else {
+                badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+            }
+            emendasStatusEl.className = `text-xs font-semibold px-2.5 py-0.5 rounded-full border ${badgeClass}`;
+        }
+    }
+
+    fecharModalVotacao() {
+        if (this.modalVotacao) {
+            this.modalVotacao.classList.add('hidden');
+        }
     }
 }
 
