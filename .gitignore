@@ -3,4 +3,4 @@
 .env
 .vscode/
 node_modules/
-assets/js/core/config.js
+planos-fix/

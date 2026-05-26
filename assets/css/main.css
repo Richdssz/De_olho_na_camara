@@ -1,0 +1,43 @@
+/* === TEMA ESCURO (padrão) === */
+[data-theme="dark"],
+:root {
+  --bg-primario:        #0d0d0d;
+  --bg-secundario:      #161616;
+  --bg-terciario:       #1f1f1f;
+  --borda:              #2a2a2a;
+  --texto-primario:     #e8e8e8;
+  --texto-secundario:   #a0a0a0;
+  --texto-mudo:         #5a5a5a;
+  --cor-positivo:       #2ecc71;
+  --cor-atencao:        #f39c12;
+  --cor-critico:        #e74c3c;
+  --cor-neutro:         #7f8c8d;
+  --cor-primaria:       #1abc9c;
+  --cor-primaria-hover: #16a085;
+  --sombra:             0 4px 24px rgba(0,0,0,0.4);
+}
+
+/* === TEMA CLARO === */
+[data-theme="light"] {
+  --bg-primario:        #f4f4f4;
+  --bg-secundario:      #ffffff;
+  --bg-terciario:       #ebebeb;
+  --borda:              #d0d0d0;
+  --texto-primario:     #111111;
+  --texto-secundario:   #555555;
+  --texto-mudo:         #aaaaaa;
+  --cor-positivo:       #27ae60;
+  --cor-atencao:        #e67e22;
+  --cor-critico:        #c0392b;
+  --cor-neutro:         #7f8c8d;
+  --cor-primaria:       #16a085;
+  --cor-primaria-hover: #1abc9c;
+  --sombra:             0 4px 24px rgba(0,0,0,0.1);
+}
+
+body {
+  background-color: var(--bg-primario);
+  color: var(--texto-primario);
+  font-family: 'Inter', system-ui, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
