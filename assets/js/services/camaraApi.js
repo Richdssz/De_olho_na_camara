@@ -109,10 +109,13 @@ class CamaraApiService {
      * Busca as votações recentes da Câmara.
      */
     async buscarVotacoesRecentes(itens = 20) {
+        const hoje = new Date().toISOString().split('T')[0];
         const response = await this._fetch('/votacoes', {
             ordem: 'DESC',
             ordenarPor: 'dataHoraRegistro',
-            itens: itens
+            itens: itens,
+            dataInicio: '2023-01-01',
+            dataFim: hoje
         });
         return response.dados || [];
     }
