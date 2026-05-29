@@ -110,3 +110,104 @@ input:focus { border-color: var(--cor-primaria); outline: none; }
   100% { background-position: -200% 0; }
 }
 
+/* Logo Link */
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: #fff;
+  transition: opacity 0.2s ease;
+}
+.logo-link:hover {
+  opacity: 0.9;
+}
+.logo-link svg {
+  flex-shrink: 0;
+}
+
+/* Tooltip Trigger & Popover */
+.tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--bg-terciario);
+  border: 1px solid var(--borda);
+  color: var(--texto-secundario);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: help;
+  position: relative;
+  vertical-align: middle;
+}
+.tooltip-trigger::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-terciario);
+  border: 1px solid var(--borda);
+  color: var(--texto-primario);
+  font-size: 0.8rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  width: 220px;
+  white-space: normal;
+  line-height: 1.5;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 100;
+  box-shadow: var(--sombra);
+}
+.tooltip-trigger:hover::after { opacity: 1; }
+
+/* Help Modal CSS */
+.btn-ajuda {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg-terciario);
+  border: 1px solid var(--borda);
+  color: var(--texto-secundario);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.btn-ajuda:hover { border-color: var(--cor-primaria); color: var(--cor-primaria); }
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.modal-overlay[hidden] { display: none; }
+.modal-box {
+  background: var(--bg-secundario);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 28px;
+  max-width: 520px; width: 90%;
+  max-height: 80vh; overflow-y: auto;
+  position: relative;
+}
+.modal-fechar {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none;
+  color: var(--texto-secundario); cursor: pointer; font-size: 1rem;
+}
+.ajuda-lista dt {
+  font-weight: 600; color: var(--cor-primaria);
+  margin-top: 14px;
+}
+.ajuda-lista dd {
+  margin: 4px 0 0 0;
+  font-size: 0.875rem; color: var(--texto-secundario); line-height: 1.5;
+}
+

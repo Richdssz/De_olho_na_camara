@@ -76,11 +76,12 @@ const CONFIG = {
 
 No painel do Back4App, crie as seguintes classes manualmente:
 
-- `MonitoredDeputies`
+- `Monitoramento`
 - `Avaliacao`
 - `TermometroLeis`
+- `PartidoAsset`
 
-O schema completo de cada classe está em `ARCHITECTURE.md`.
+O schema completo de cada classe está em [ARCHITECTURE.md](file:///c:/Users/richd/Projetos/De_olho_na_camara/ARCHITECTURE.md).
 
 ### Passo 4 — Inicie o servidor local
 
@@ -104,10 +105,10 @@ http://localhost:8080
 
 | Arquivo | Conteúdo |
 |---|---|
-| `AI_CONTEXT.md` | Stack, paleta, regras de código e domínio político |
-| `ARCHITECTURE.md` | Arquitetura MVC, árvore de diretórios e esquema do banco |
-| `PLAN.md` | Sprints, checklists e progresso do projeto |
-| `API_DOCUMENTAÇÃO.md` | Referência de todos os endpoints utilizados |
+| [AI_CONTEXT.md](file:///c:/Users/richd/Projetos/De_olho_na_camara/AI_CONTEXT.md) | Stack, paleta, regras de código e domínio político |
+| [ARCHITECTURE.md](file:///c:/Users/richd/Projetos/De_olho_na_camara/ARCHITECTURE.md) | Arquitetura MVC, árvore de diretórios e esquema do banco |
+| [Planos-fix/](file:///c:/Users/richd/Projetos/De_olho_na_camara/Planos-fix) | Sprints, checklists e progresso do projeto detalhado em blocos |
+| [API_DOCUMENTAÇÃO.md](file:///c:/Users/richd/Projetos/De_olho_na_camara/API_DOCUMENTAÇÃO.md) | Referência de todos os endpoints utilizados |
 
 ---
 

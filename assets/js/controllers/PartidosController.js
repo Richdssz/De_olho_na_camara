@@ -46,46 +46,57 @@ class PartidosController {
                 }
             });
 
-            // Une as informações dos partidos
-            const partidosCompletos = partidos
-                .map(p => {
-                    const siglaUpper = p.sigla.toUpperCase();
-                    return {
-                        id: p.id,
-                        sigla: p.sigla,
-                        nome: p.nome,
-                        urlLogo: p.urlLogo,
-                        totalMembros: membrosPorPartido[siglaUpper] || 0,
-                        coesao: coesaoMap[siglaUpper] !== undefined ? coesaoMap[siglaUpper] : null
-                    };
-                })
-                // Filtramos apenas os partidos que têm pelo menos 1 membro na legislatura ativa
-                .filter(p => p.totalMembros > 0);
+            // Une as informações dos partidos e busca logos oficiais via Back4App PartidoAsset
+            const partidosCompletos = await Promise.all(partidos.map(async (p) => {
+                const siglaUpper = p.sigla.toUpperCase();
+                const totalMembros = membrosPorPartido[siglaUpper] || 0;
+                
+                if (totalMembros === 0) return null;
+
+                const urlLogo = await window.PartidoModel.buscarLogo(p.sigla);
+                const fallbackData = window.PartidoModel.getFallbackData(p.sigla);
+                const corHex = fallbackData?.corHex || '#7f8c8d';
+
+                return {
+                    id: p.id,
+                    sigla: p.sigla,
+                    nome: p.nome,
+                    urlLogo: urlLogo,
+                    corHex: corHex,
+                    totalMembros: totalMembros,
+                    coesao: coesaoMap[siglaUpper] !== undefined ? coesaoMap[siglaUpper] : null
+                };
+            }));
+
+            const partidosAtivos = partidosCompletos.filter(Boolean);
 
             // Ordena pelo maior numero de membros na bancada
-            partidosCompletos.sort((a, b) => b.totalMembros - a.totalMembros);
+            partidosAtivos.sort((a, b) => b.totalMembros - a.totalMembros);
 
-            this.partidosOriginais = partidosCompletos;
+            this.partidosOriginais = partidosAtivos;
 
-            // Carrega valor inicial da URL
+            // Carrega valor inicial da URL ou localStorage
             const urlParams = new URLSearchParams(window.location.search);
-            const busca = urlParams.get('busca') || '';
+            let busca = urlParams.get('busca');
+            if (busca === null) {
+                busca = localStorage.getItem('partidos_state') || '';
+            }
             const inputBusca = document.getElementById('busca-partido');
             if (inputBusca && busca) {
                 inputBusca.value = busca;
             }
 
-            this.view.renderizarHemiciclo(partidosCompletos);
+            this.view.renderizarHemiciclo(partidosAtivos);
             
             if (busca) {
                 const query = busca.toLowerCase().trim();
-                const filtrados = partidosCompletos.filter(p => 
+                const filtrados = partidosAtivos.filter(p => 
                     p.sigla.toLowerCase().includes(query) || 
                     p.nome.toLowerCase().includes(query)
                 );
                 this.view.renderizarGrid(filtrados);
             } else {
-                this.view.renderizarGrid(partidosCompletos);
+                this.view.renderizarGrid(partidosAtivos);
             }
 
             this.setupFiltro();
@@ -110,10 +121,16 @@ class PartidosController {
             const urlParams = new URLSearchParams(window.location.search);
             if (query) {
                 urlParams.set('busca', query);
+                localStorage.setItem('partidos_state', query);
             } else {
                 urlParams.delete('busca');
+                localStorage.removeItem('partidos_state');
             }
-            window.history.replaceState(null, '', window.location.pathname + '?' + urlParams.toString());
+            try {
+                window.history.replaceState(null, '', window.location.pathname + '?' + urlParams.toString());
+            } catch (e) {
+                console.warn("Nao foi possivel atualizar a URL via history API:", e);
+            }
 
             if (!query) {
                 this.view.renderizarGrid(this.partidosOriginais);

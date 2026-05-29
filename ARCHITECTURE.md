@@ -1,7 +1,7 @@
 # 🏗️ ARCHITECTURE.md — Planta Baixa do Sistema MVC
 
 > Documento de arquitetura oficial do De Olho na Câmara.
-> Versão: 2.0.0 | Padrão: Client-Side MVC em Vanilla JS
+> Versão: 2.1.0 | Padrão: Client-Side MVC em Vanilla JS
 
 ---
 
@@ -18,7 +18,7 @@ Em vez de um framework que aplica MVC automaticamente, aqui **nós mesmos impomo
 │  │             │◄───│       E R        │───►│                 │ │
 │  │  Dados e    │    │                  │    │  DOM e eventos  │ │
 │  │  APIs       │───►│  Orquestra tudo  │◄───│                 │ │
-│  └─────────────┘    └──────────────────┘    └─────────────────┘ │
+│  │  └─────────────┘    └──────────────────┘    └─────────────────┘ │
 │         │                                                        │
 │         │ fetch()                                                │
 └─────────┼────────────────────────────────────────────────────────┘
@@ -48,10 +48,11 @@ Em vez de um framework que aplica MVC automaticamente, aqui **nós mesmos impomo
 ```
 assets/js/models/
   DeputadoModel.js       ← busca e processa dados de deputados
-  PartidoModel.js        ← busca e processa dados de partidos
+  PartidoModel.js        ← busca e processa dados de partidos (wikipedia + assets)
   VotacaoModel.js        ← busca votações e orientações
   MonitoramentoModel.js  ← CRUD de deputados monitorados (Back4App)
   AvaliacaoModel.js      ← CRUD de avaliações (Back4App)
+  TermometroModel.js     ← CRUD de termômetro de leis (Back4App)
 ```
 
 ### 🎨 VIEW — "Como os dados aparecem"
@@ -67,11 +68,16 @@ assets/js/models/
 
 ```
 assets/js/views/
-  DeputadosView.js         ← renderiza grid e filtros da listagem
-  PerfilDeputadoView.js    ← renderiza KPIs, gráficos e tabela do perfil
-  DashboardView.js         ← renderiza o painel principal
-  RadarView.js             ← renderiza cards de anomalias
+  DashboardView.js         ← renderiza o painel principal e KPIs
+  DeputadosView.js         ← renderiza grid, paginação e filtros da listagem
+  PerfilDeputadoView.js    ← renderiza KPIs, gráficos de gastos, avaliações e votos
   PartidosView.js          ← renderiza listagem de partidos
+  PartidoPerfilView.js     ← renderiza perfil detalhado (hemiciclo, membros e dados wiki)
+  RadarAnomaliasView.js    ← renderiza cards de anomalias e alertas de risco
+  ComparadorView.js        ← renderiza tela comparativa de parlamentares
+  BussolaView.js           ← renderiza quiz da Bússola e gráfico de quadrantes
+  RankingEconomiaView.js   ← renderiza pódio dos econômicos e tabela CEAP
+  MeuRadarView.js          ← renderiza lista de monitoramento do cidadão
 ```
 
 ### 🎛️ CONTROLLER — "Quem dirige o fluxo"
@@ -87,11 +93,16 @@ assets/js/views/
 
 ```
 assets/js/controllers/
-  DeputadosController.js         ← orquestra listagem e filtros
-  PerfilDeputadoController.js    ← orquestra perfil completo
-  DashboardController.js         ← orquestra dashboard principal
-  RadarController.js             ← orquestra radar de anomalias
-  PartidosController.js          ← orquestra listagem de partidos
+  DashboardController.js
+  DeputadosController.js
+  PerfilDeputadoController.js
+  PartidosController.js
+  PartidoPerfilController.js
+  RadarAnomaliasController.js
+  ComparadorController.js
+  BussolaController.js
+  RankingEconomiaController.js
+  MeuRadarController.js
 ```
 
 ---
@@ -112,67 +123,78 @@ assets/js/services/
 
 ## 4. ÁRVORE DE DIRETÓRIOS OFICIAL
 
-> Esta é a estrutura canônica. Nenhum arquivo JS de lógica vai em outro lugar.
+> Esta é a estrutura canônica atualizada do projeto.
 
 ```
 de-olho-na-camara/
 │
-├── index.html                         # Dashboard principal
+├── index.html                         # Redirecionador ou Landing Page
 │
 ├── pages/
+│   ├── dashboard.html                 # Painel consolidado do aplicativo
 │   ├── deputados.html                 # Listagem de deputados
 │   ├── deputado-perfil.html           # Perfil individual do deputado
 │   ├── partidos.html                  # Listagem de partidos
 │   ├── partido-perfil.html            # Perfil do partido
 │   ├── radar-anomalias.html           # Radar de irregularidades
+│   ├── comparador.html                # Comparador de parlamentares
+│   ├── bussola.html                   # Bússola Ideológica 2.0 (20 perguntas)
+│   ├── ranking-economia.html          # Ranking de Economia CEAP
+│   ├── meu-radar.html                 # Deputados monitorados pelo cidadão
+│   ├── espectro.html                  # Redirecionador para bussola.html
 │   └── sobre.html                     # Sobre o projeto
 │
 ├── assets/
 │   │
 │   ├── css/
-│   │   ├── main.css                   # Variáveis CSS e reset global
-│   │   └── components.css             # Estilos de componentes reutilizáveis
+│   │   ├── main.css                   # Variáveis CSS, resets e cores do tema
+│   │   └── components.css             # Estilos de componentes reutilizáveis, modais e tooltips
 │   │
 │   └── js/
 │       │
-│       ├── core/                      # Infraestrutura da aplicação
-│       │   ├── app.js                 # Bootstrap: inicializa Parse, router e página atual
-│       │   ├── config.js              # Credenciais Back4App (em .gitignore)
-│       │   └── router.js              # Roteamento entre páginas (opcional)
+│       ├── core/                      # Bootstrap e configurações globais
+│       │   ├── app.js                 # Inicializa Parse, listeners globais (ajuda) e tema
+│       │   └── config.js              # Credenciais Back4App
 │       │
-│       ├── services/                  # Serviços de infraestrutura (usados pelo Model)
-│       │   ├── camaraApi.js           # ÚNICO arquivo que faz fetch() à API da Câmara
-│       │   ├── back4app.js            # ÚNICO arquivo que usa Parse SDK diretamente
+│       ├── services/                  # Infraestrutura e utilitários
+│       │   ├── camaraApi.js           # Fetch da API da Câmara
+│       │   ├── back4app.js            # Wrapper do Parse SDK
 │       │   ├── cache.js               # Gerência de localStorage e TTL
-│       │   └── analytics.js           # Cálculos: presença, coesão, anomalias, KPIs
+│       │   └── analytics.js           # Fórmulas de coesão, presença e despesas
 │       │
-│       ├── models/                    # Camada de dados (MODEL)
-│       │   ├── DeputadoModel.js       # Dados de deputados (perfil, gastos, votações)
-│       │   ├── PartidoModel.js        # Dados de partidos e coesão
-│       │   ├── VotacaoModel.js        # Votações, votos individuais, orientações
-│       │   ├── MonitoramentoModel.js  # CRUD: deputados monitorados (Back4App)
-│       │   └── AvaliacaoModel.js      # CRUD: avaliações dos usuários (Back4App)
+│       ├── models/                    # Camada MODEL
+│       │   ├── DeputadoModel.js
+│       │   ├── PartidoModel.js
+│       │   ├── VotacaoModel.js
+│       │   ├── MonitoramentoModel.js
+│       │   └── AvaliacaoModel.js
 │       │
-│       ├── views/                     # Camada de apresentação (VIEW)
-│       │   ├── DashboardView.js       # Renderiza o painel principal
-│       │   ├── DeputadosView.js       # Renderiza grid, filtros e paginação
-│       │   ├── PerfilDeputadoView.js  # Renderiza KPIs, gráficos, tabela de votos
-│       │   ├── PartidosView.js        # Renderiza listagem de partidos
-│       │   └── RadarView.js           # Renderiza cards de anomalias
+│       ├── views/                     # Camada VIEW
+│       │   ├── DashboardView.js
+│       │   ├── DeputadosView.js
+│       │   ├── PerfilDeputadoView.js
+│       │   ├── PartidosView.js
+│       │   ├── PartidoPerfilView.js
+│       │   ├── RadarAnomaliasView.js
+│       │   ├── ComparadorView.js
+│       │   ├── BussolaView.js
+│       │   ├── RankingEconomiaView.js
+│       │   └── MeuRadarView.js
 │       │
-│       └── controllers/               # Camada de orquestração (CONTROLLER)
+│       └── controllers/               # Camada CONTROLLER
 │           ├── DashboardController.js
 │           ├── DeputadosController.js
 │           ├── PerfilDeputadoController.js
 │           ├── PartidosController.js
-│           └── RadarController.js
-│
-├── docs/
-│   └── (documentação de telas e decisões técnicas)
+│           ├── PartidoPerfilController.js
+│           ├── RadarAnomaliasController.js
+│           ├── ComparadorController.js
+│           ├── BussolaController.js
+│           ├── RankingEconomiaController.js
+│           └── MeuRadarController.js
 │
 ├── AI_CONTEXT.md                      # A Constituição do projeto
 ├── ARCHITECTURE.md                    # Este arquivo
-├── PLAN.md                            # Sprints e checklist de progresso
 ├── README.md                          # Visão geral e como rodar
 └── API_DOCUMENTAÇÃO.md                # Fonte da verdade sobre endpoints
 ```
@@ -216,39 +238,49 @@ de-olho-na-camara/
 
 ## 6. BANCO DE DADOS — ESQUEMA DAS CLASSES BACK4APP
 
-### `MonitoredDeputies`
+### `Monitoramento` (Tabela de deputados monitorados no painel)
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `user` | Pointer\<\_User\> | Dono do monitoramento |
 | `deputadoId` | Number | ID na API da Câmara |
-| `nome` | String | Nome completo |
+| `nome` | String | Nome completo do parlamentar |
 | `partido` | String | Sigla do partido |
 | `estado` | String | UF |
 | `fotoUrl` | String | URL da foto oficial |
 | `ativo` | Boolean | Monitoramento ativo? |
-| `notaUsuario` | String | Anotação pessoal |
+| `notaUsuario` | String | Anotações adicionais |
 
-**ACL:** somente o `user` dono pode ler e escrever.
+**ACL:** Privada (somente o `user` proprietário pode ler/escrever).
 
-### `Avaliacao`
+### `Avaliacao` (Tabela de avaliações)
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `usuario` | Pointer\<\_User\> | Quem avaliou |
+| `usuario` | Pointer\<\_User\> | Pointer para o autor do review |
 | `deputadoId` | Number | ID na API da Câmara |
-| `nota` | Number | 1 a 5 |
-| `comentario` | String | Texto livre |
+| `nota` | Number | Inteiro de 1 a 5 estrelas |
+| `comentario` | String | Comentário textual |
 
-**Índice unique:** `usuario` + `deputadoId` (um usuário avalia cada deputado uma vez).
+**Índice unique:** `usuario` + `deputadoId` (restrição de um voto/review por deputado/usuario).
 
-### `TermometroLeis`
+### `TermometroLeis` (Enquetes populares)
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `proposicaoId` | Number | ID da proposição na API |
-| `sessionId` | String | UUID anônimo do visitante |
+| `sessionId` | String | UUID de identificação anônima |
 | `voto` | String | `'apoio'` ou `'rejeito'` |
+
+### `PartidoAsset` (Identidade dos Partidos)
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `sigla` | String | Sigla (Ex: "PT", "PL") |
+| `nomeCompleto`| String | Nome oficial do partido |
+| `logoUrl` | String | URL da logo hospedada no B4App Files |
+| `corHex` | String | Cor hexadecimal oficial do partido |
+| `ativo` | Boolean | Se possui bancada ativa na Câmara |
 
 ---
 

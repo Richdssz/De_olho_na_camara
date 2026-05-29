@@ -16,14 +16,24 @@
     
     <!-- Parse SDK (Back4App) -->
     <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
+
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
 </head>
 <body class="flex h-screen bg-gray-100 font-sans antialiased">
     
     <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 text-white flex flex-col shadow-2xl">
-        <div class="p-6 flex items-center gap-3 cursor-pointer" onclick="window.location.href='../index.html'">
-            <i class="fa-solid fa-eye text-3xl text-teal-400"></i>
-            <h1 class="text-2xl font-bold tracking-wider">De olho na<br><span class="text-teal-400">câmara</span></h1>
+    <aside class="w-64 h-screen bg-gray-900 text-white flex flex-col shadow-2xl">
+        <div class="p-6">
+            <a href="../index.html" class="logo-link" aria-label="Ir para a página inicial">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="12" cy="12" rx="10" ry="6" stroke="var(--cor-primaria)" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="3" fill="var(--cor-primaria)"/>
+                    <circle cx="12" cy="12" r="1.5" fill="var(--bg-primario)"/>
+                </svg>
+                <span>De Olho na Câmara</span>
+            </a>
         </div>
         
         <nav class="flex-1 px-4 mt-6 space-y-3 overflow-y-auto">
@@ -55,6 +65,10 @@
                 <i class="fa-solid fa-compass text-xl"></i>
                 <span class="text-lg font-medium">Bússola Ideológica</span>
             </a>
+            <a href="ranking-economia.html" class="flex items-center gap-4 px-5 py-3 rounded-2xl text-gray-400 transition-colors hover:bg-teal-800 hover:text-white">
+                <i class="fa-solid fa-piggy-bank text-xl"></i>
+                <span class="text-lg font-medium">Ranking Economia</span>
+            </a>
         </nav>
         
         <div class="p-4 border-t border-gray-800 text-sm text-gray-500">
@@ -70,7 +84,16 @@
         <header class="bg-white shadow-sm border-b border-gray-200 px-10 py-12 relative">
             <!-- Auth Panel -->
             <div class="absolute top-4 right-8 flex items-center gap-4">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema" title="Alternar tema claro/escuro">
+                  <span class="theme-toggle__track">
+                    <span class="theme-toggle__thumb"></span>
+                  </span>
+                  <span class="theme-toggle__icon theme-toggle__icon--sun">☀️</span>
+                  <span class="theme-toggle__icon theme-toggle__icon--moon">🌙</span>
+                </button>
                 <span id="user-display" class="hidden text-gray-700 font-medium"></span>
+                <button id="btn-ajuda" class="btn-ajuda" aria-label="Ajuda" title="Como usar">?</button>
                 <button id="btn-login-modal" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-medium transition-colors">Entrar / Cadastrar</button>
                 <button id="btn-logout" class="hidden text-gray-500 hover:text-red-500 font-medium transition-colors">Sair</button>
             </div>
@@ -88,10 +111,54 @@
         <!-- Dashboard Area -->
         <section class="p-10 max-w-7xl mx-auto w-full space-y-10">
             
+            <!-- KPI Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- KPI 1: Deputados -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Deputados Ativos</span>
+                        <span id="kpi-deputados" class="text-2xl font-black text-gray-800">513</span>
+                    </div>
+                </div>
+                <!-- KPI 2: Total CEAP -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Total Gasto CEAP (2026)</span>
+                        <span id="kpi-total-ceap" class="text-2xl font-black text-gray-800">R$ 0,00</span>
+                    </div>
+                </div>
+                <!-- KPI 3: Votações -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-check-to-slot"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Votações este ano</span>
+                        <span id="kpi-votacoes" class="text-2xl font-black text-gray-800">0</span>
+                    </div>
+                </div>
+                <!-- KPI 4: Partidos com Assento -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-building-flag"></i>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Partidos com Assento</span>
+                        <span id="kpi-partidos" class="text-2xl font-black text-gray-800">0</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Estatísticas do Plenário -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-xl font-bold text-gray-900 mb-1">Estatísticas do Plenário</h3>
-                <p class="text-sm text-gray-500 mb-6">Distribuição partidária dos deputados atualmente exibidos</p>
+                <p class="text-sm text-gray-500 mb-6">Distribuição partidária dos deputados da Câmara</p>
                 <div class="relative w-full max-w-md mx-auto" style="height: 300px;">
                     <canvas id="graficoPartidos"></canvas>
                 </div>
@@ -164,6 +231,25 @@
             </div>
 
             <button type="button" id="btn-confirmar-avaliacao" class="w-full bg-teal-700 hover:bg-teal-800 text-white py-3 rounded-2xl font-bold transition-colors">Confirmar Avaliação</button>
+        </div>
+    </div>
+
+    <!-- Modal de Ajuda Global -->
+    <div id="modal-ajuda" class="modal-overlay" hidden>
+        <div class="modal-box">
+            <button id="btn-fechar-ajuda" class="modal-fechar" aria-label="Fechar">✕</button>
+            <h2 class="section-title">Como usar o Dashboard</h2>
+            <dl class="ajuda-lista">
+                <dt>📊 KPIs no topo</dt>
+                <dd>Os 4 cartões mostram o total de deputados ativos, o gasto acumulado da cota CEAP no ano, o número de votações realizadas e a quantidade de partidos com bancada. Os valores são carregados da API oficial da Câmara.</dd>
+                <dt>🍥 Gráfico de Distribuição Partidária</dt>
+                <dd>Mostra todos os partidos com assento na legislatura atual. Cada fatia usa a cor oficial do partido. Passe o mouse sobre uma fatia para ver o nome completo e o número de deputados.</dd>
+                <dt>⏳ Carregamento de dados</dt>
+                <dd>Alguns KPIs dependem de cálculos pesados (ex: total CEAP). Se demorar a carregar, aguarde — os dados estão sendo buscados diretamente da API oficial e colocados em cache para visitas futuras serem instantâneas.</dd>
+                <dt>🔗 Navegação</dt>
+                <dd>Use a barra lateral esquerda para acessar as outras seções. Clique no logo no topo para voltar à página inicial.</dd>
+            </dl>
+            <button id="btn-fechar-ajuda-2" class="btn-primary" style="margin-top:16px;width:100%">Entendi</button>
         </div>
     </div>
 

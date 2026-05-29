@@ -49,10 +49,10 @@ class PartidoPerfilController {
 
             // 1. Busca deputados, coesao e detalhes partidarios passando o ano escolhido
             const [deputadosResp, coesaoResp, partidoInfo, partidosListResp] = await Promise.all([
-                window.DeputadoModel.listar(this.anoAnalise),
-                window.PartidoModel.calcularCoesaoPartidos(10, this.anoAnalise),
+                window.DeputadoModel.listar({ itens: 600 }),
+                window.PartidoModel.calcularCoesaoPartidos(10),
                 this.partidoIdGlobal ? window.camaraApi.buscarPartido(this.partidoIdGlobal).catch(() => null) : Promise.resolve(null),
-                window.PartidoModel.listar(this.anoAnalise)
+                window.PartidoModel.listar()
             ]);
 
             // Se falhar a listagem de deputados ou vier vazia
@@ -84,13 +84,16 @@ class PartidoPerfilController {
                 : null;
 
             const partidoListaInfo = partidosListResp.success ? (partidosListResp.data || []).find(p => p.sigla.toUpperCase() === this.partidoSiglaGlobal.toUpperCase()) : null;
-            const urlLogo = (partidoInfo && partidoInfo.urlLogo) ? partidoInfo.urlLogo : (partidoListaInfo ? partidoListaInfo.urlLogo : null);
+            const urlLogo = await window.PartidoModel.buscarLogo(this.partidoSiglaGlobal);
+            const fallbackData = window.PartidoModel.getFallbackData(this.partidoSiglaGlobal);
+            const corHex = fallbackData?.corHex || '#7f8c8d';
             const nomePartido = partidoInfo ? partidoInfo.nome : (partidoListaInfo ? partidoListaInfo.nome : (membros[0] ? membros[0].siglaPartido : this.partidoSiglaGlobal));
 
             const partidoCompleto = {
                 sigla: this.partidoSiglaGlobal,
                 nome: nomePartido,
                 urlLogo: urlLogo,
+                corHex: corHex,
                 totalMembros: membros.length,
                 coesao: coesao
             };
@@ -98,6 +101,7 @@ class PartidoPerfilController {
             this.membrosGlobal = membros;
 
             this.view.preencherDadosPerfil(partidoCompleto);
+            this.view.renderizarHemiciclo(membros);
             this.view.renderizarMembros(membros);
 
             // Iniciar busca da Wikipedia de forma assincrona/paralela
@@ -112,20 +116,6 @@ class PartidoPerfilController {
             // Carregar despesas da bancada para o ano selecionado
             await this.carregarDespesasBancadaObjeto();
 
-            // Gerar dados do Espectro Ideologico Interno (Scatter Plot)
-            const membrosEspectro = membros.map(m => {
-                const coords = this.obterCoesaoEAlinhamentoDeputado(m.id, this.partidoSiglaGlobal);
-                return {
-                    id: m.id,
-                    nome: m.nome,
-                    partido: m.siglaPartido,
-                    estado: m.siglaUf,
-                    coesao: coords.coesao,
-                    alinhamento: coords.alinhamento
-                };
-            });
-
-            this.view.renderizarEspectroInterno(membrosEspectro);
             this.view.mostrarConteudo();
 
         } catch (error) {

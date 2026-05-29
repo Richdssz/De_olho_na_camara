@@ -109,12 +109,17 @@ class CamaraApiService {
      * Busca as votações recentes da Câmara.
      */
     async buscarVotacoesRecentes(itens = 20) {
-        const hoje = new Date().toISOString().split('T')[0];
+        const hojeObj = new Date();
+        const hoje = hojeObj.toISOString().split('T')[0];
+        const oitentaECincoDiasAtras = new Date();
+        oitentaECincoDiasAtras.setDate(hojeObj.getDate() - 85);
+        const dataInicio = oitentaECincoDiasAtras.toISOString().split('T')[0];
+
         const response = await this._fetch('/votacoes', {
             ordem: 'DESC',
             ordenarPor: 'dataHoraRegistro',
             itens: itens,
-            dataInicio: '2023-01-01',
+            dataInicio: dataInicio,
             dataFim: hoje
         });
         return response.dados || [];
@@ -149,14 +154,63 @@ class CamaraApiService {
 
     /**
      * Busca a lista geral de deputados ativos.
+     * Se o numero de itens solicitado exceder o retornado na primeira pagina,
+     * busca automaticamente as paginas adicionais (max 100 itens por pagina — limite da API).
      */
     async listarDeputados(params = {}) {
+        const itensSolicitados = params.itens || 15;
+        const itensPorPagina = Math.min(itensSolicitados, 100);
+
+        const firstPageParams = { ...params, itens: itensPorPagina };
         const response = await this._fetch('/deputados', {
             ordem: 'ASC',
             ordenarPor: 'nome',
-            ...params
+            ...firstPageParams
         });
-        return response.dados || [];
+
+        let dados = response.dados || [];
+        const links = response.links || [];
+
+        if (itensSolicitados > dados.length && links.length > 0) {
+            const lastLink = links.find(l => l.rel === 'last');
+            if (lastLink) {
+                try {
+                    const lastUrl = new URL(lastLink.href);
+                    const totalPaginas = parseInt(lastUrl.searchParams.get('pagina')) || 1;
+                    const paginasNecessarias = Math.min(
+                        totalPaginas,
+                        Math.ceil(itensSolicitados / itensPorPagina)
+                    );
+
+                    if (paginasNecessarias > 1) {
+                        const pagePromises = [];
+                        for (let pagina = 2; pagina <= paginasNecessarias; pagina++) {
+                            const pageParams = {
+                                ordem: 'ASC',
+                                ordenarPor: 'nome',
+                                ...params,
+                                itens: itensPorPagina,
+                                pagina
+                            };
+                            pagePromises.push(
+                                this._fetch('/deputados', pageParams)
+                                    .then(res => res.dados || [])
+                                    .catch(() => [])
+                            );
+                        }
+
+                        const resultados = await Promise.all(pagePromises);
+                        resultados.forEach(pageData => {
+                            dados = dados.concat(pageData);
+                        });
+                    }
+                } catch (err) {
+                    console.warn("[CamaraApi] Nao foi possivel buscar paginas adicionais de deputados:", err);
+                }
+            }
+        }
+
+        return dados.slice(0, itensSolicitados);
     }
 
     /**
@@ -247,10 +301,10 @@ class CamaraApiService {
                     }
                 } else {
                     const hoje = new Date();
-                    const tresMesesAtras = new Date();
-                    tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
+                    const oitentaECincoDiasAtras = new Date();
+                    oitentaECincoDiasAtras.setDate(hoje.getDate() - 85);
                     chunks.push({
-                        dataInicio: tresMesesAtras.toISOString().split('T')[0],
+                        dataInicio: oitentaECincoDiasAtras.toISOString().split('T')[0],
                         dataFim: hoje.toISOString().split('T')[0]
                     });
                 }
@@ -333,6 +387,23 @@ class CamaraApiService {
     async buscarHistoricoDeputado(id) {
         const response = await this._fetch(`/deputados/${id}/historico`);
         return response.dados || [];
+    }
+
+    /**
+     * Busca as votacoes que ocorreram em um evento/sessao especifica.
+     * Trata 404 como "evento sem votacoes" em vez de disparar erro.
+     */
+    async buscarVotacoesEvento(eventoId) {
+        try {
+            const response = await this._fetch(`/eventos/${eventoId}/votacoes`);
+            return { success: true, dados: response.dados || [] };
+        } catch (err) {
+            if (err.message && err.message.includes('404')) {
+                return { success: false, dados: [], notFound: true };
+            }
+            console.warn(`Erro ao buscar votacoes do evento ${eventoId}:`, err.message);
+            return { success: false, dados: [] };
+        }
     }
 
     /**

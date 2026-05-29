@@ -13,35 +13,23 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
-        }
-    </style>
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
 </head>
 <body class="text-gray-800 antialiased h-screen flex overflow-hidden">
     
     <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 text-white flex flex-col shadow-2xl shrink-0">
-        <div class="p-6 flex items-center gap-3 cursor-pointer" onclick="window.location.href='../index.html'">
-            <i class="fa-solid fa-eye text-3xl text-teal-400"></i>
-            <h1 class="text-2xl font-bold tracking-wider">De olho na<br><span class="text-teal-400">câmara</span></h1>
+    <aside class="w-64 h-screen bg-gray-900 text-white flex flex-col shadow-2xl shrink-0">
+        <div class="p-6">
+            <a href="../index.html" class="logo-link" aria-label="Ir para a página inicial">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="12" cy="12" rx="10" ry="6" stroke="var(--cor-primaria)" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="3" fill="var(--cor-primaria)"/>
+                    <circle cx="12" cy="12" r="1.5" fill="var(--bg-primario)"/>
+                </svg>
+                <span>De Olho na Câmara</span>
+            </a>
         </div>
         
         <nav class="flex-1 px-4 mt-6 space-y-3 overflow-y-auto">
@@ -73,6 +61,10 @@
                 <i class="fa-solid fa-compass text-xl"></i>
                 <span class="text-lg font-medium">Bússola Ideológica</span>
             </a>
+            <a href="ranking-economia.html" class="flex items-center gap-4 px-5 py-3 rounded-2xl text-gray-400 transition-colors hover:bg-teal-800 hover:text-white">
+                <i class="fa-solid fa-piggy-bank text-xl"></i>
+                <span class="text-lg font-medium">Ranking Economia</span>
+            </a>
         </nav>
         
         <div class="p-4 border-t border-gray-800">
@@ -97,7 +89,16 @@
 
             <!-- Auth Buttons -->
             <div class="flex items-center gap-4">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema" title="Alternar tema claro/escuro">
+                  <span class="theme-toggle__track">
+                    <span class="theme-toggle__thumb"></span>
+                  </span>
+                  <span class="theme-toggle__icon theme-toggle__icon--sun">☀️</span>
+                  <span class="theme-toggle__icon theme-toggle__icon--moon">🌙</span>
+                </button>
                 <span id="user-display" class="hidden text-gray-700 font-medium text-sm"></span>
+                <button id="btn-ajuda" class="btn-ajuda" aria-label="Ajuda" title="Como usar">?</button>
                 <button id="btn-login-modal" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full font-medium text-sm transition-colors">Entrar / Cadastrar</button>
                 <button id="btn-logout" class="hidden text-gray-500 hover:text-red-500 font-medium text-sm transition-colors">Sair</button>
             </div>
@@ -237,6 +238,27 @@
                     <button type="button" id="btn-signup" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-2xl font-medium transition-colors">Criar Conta</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de Ajuda Global -->
+    <div id="modal-ajuda" class="modal-overlay" hidden>
+        <div class="modal-box">
+            <button id="btn-fechar-ajuda" class="modal-fechar" aria-label="Fechar">✕</button>
+            <h2 class="section-title">Como usar o Comparador</h2>
+            <dl class="ajuda-lista">
+                <dt>🔍 Selecionar Deputados</dt>
+                <dd>Use os dois campos de busca no topo para selecionar os dois parlamentares que deseja comparar. Digite o nome e selecione na lista de sugestões.</dd>
+                <dt>📊 Indicadores Comparados</dt>
+                <dd>O comparador coloca lado a lado: presença em votações, coesão partidária, total de gastos CEAP, nota média de avaliação e principais propostas de lei de cada parlamentar.</dd>
+                <dt>🌟 Destaques Visuais</dt>
+                <dd>Quando um indicador de um deputado for melhor que o do outro, ele é destacado em verde. Isso facilita identificar rapidamente qual parlamentar tem melhor desempenho em cada dimensão.</dd>
+                <dt>⚠️ Dados de Votação Indisponíveis</dt>
+                <dd>Se a API não retornar dados de votação para algum deputado, essa seção será marcada como "Indisponível" em vez de mostrar 0% — para não gerar comparações injustas.</dd>
+                <dt>📄 Propostas de Lei</dt>
+                <dd>As proposições listadas são as mais recentes de autoria do deputado, obtidas diretamente da API oficial da Câmara.</dd>
+            </dl>
+            <button id="btn-fechar-ajuda-2" class="btn-primary" style="margin-top:16px;width:100%">Entendi</button>
         </div>
     </div>
 

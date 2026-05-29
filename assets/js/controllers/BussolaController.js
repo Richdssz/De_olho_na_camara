@@ -15,95 +15,188 @@ class BussolaController {
          * socialWeight:    +1 = Progressista, -1 = Conservador, 0 = neutro
          */
         this.questoes = [
+            // Eixo Social (score negativo = conservador, positivo = progressista)
             {
-                id: '2263446-95',
-                categoria: 'Assistência Social',
-                titulo: 'Expansão de Programas de Renda Básica',
-                ementa: 'Ampliar a renda básica e criar programas de proteção social dedicados a famílias em extrema vulnerabilidade lideradas por mães solo.',
-                contexto: 'PL 4.733/2020 — votação no Plenário da Câmara dos Deputados.',
-                economicoWeight: -1,
-                socialWeight: 0.5
+                id: '1',
+                categoria: 'Aborto',
+                titulo: 'Criminalização do Aborto',
+                ementa: 'O aborto deve permanecer criminalizado em todos os casos, sem exceções.',
+                contexto: 'Atualmente o aborto no Brasil é permitido apenas em casos de estupro, risco de vida da mãe e anencefalia fetal.',
+                economicoWeight: 0,
+                socialWeight: -2
             },
             {
-                id: '2531924-53',
-                categoria: 'Reforma do Estado',
-                titulo: 'Meritocracia e Avaliação no Serviço Público',
-                ementa: 'Instituir novas diretrizes rígidas de avaliação de desempenho e estabilidade de servidores públicos civis da União, revisando a estabilidade automática.',
-                contexto: 'PL 3.240/2025 — votação do Substitutivo na Comissão de Administração e Serviço Público.',
-                economicoWeight: 1,
-                socialWeight: -0.5
+                id: '2',
+                categoria: 'Drogas',
+                titulo: 'Porte de Drogas para Uso Pessoal',
+                ementa: 'O porte de drogas para uso pessoal deve ser tratado como crime, não como questão de saúde.',
+                contexto: 'O STF debateu a descriminalização do porte de maconha para uso próprio em 2024.',
+                economicoWeight: 0,
+                socialWeight: -1.5
             },
             {
-                id: '258057-111',
-                categoria: 'Economia Popular',
-                titulo: 'Fomento a Cooperativas e Agricultura Familiar',
-                ementa: 'Criar regime especial de fomento tributário e linhas de microcrédito subsidiadas para cooperativas, economia solidária e agricultura familiar.',
-                contexto: 'PL 3.801/2004 — votação da Emenda do Senado Federal ao Projeto de Lei.',
-                economicoWeight: -1,
-                socialWeight: 0.5
+                id: '3',
+                categoria: 'Armamento',
+                titulo: 'Facilitação do Porte de Armas',
+                ementa: 'Cidadãos de bem devem ter o direito facilitado de portar armas de fogo para legítima defesa.',
+                contexto: 'O Estatuto do Desarmamento (Lei 10.826/2003) restringe o porte a casos específicos.',
+                economicoWeight: 0,
+                socialWeight: -2
             },
             {
-                id: '2613731-42',
-                categoria: 'Regulação Digital',
-                titulo: 'Responsabilização de Plataformas Digitais por Conteúdo',
-                ementa: 'Responsabilizar grandes plataformas e marketplaces solidariamente por fraudes, desinformação e conteúdo prejudicial publicado por terceiros.',
-                contexto: 'PL 1.625/2026 — Subemenda Substitutiva da Comissão de Defesa do Consumidor.',
-                economicoWeight: -0.5,
-                socialWeight: 1
+                id: '4',
+                categoria: 'Educação',
+                titulo: 'Valores Tradicionais nas Escolas',
+                ementa: 'Escolas públicas devem adotar valores tradicionais e religiosos no currículo.',
+                contexto: 'O "Escola sem Partido" propunha limitar a discussão de temas como gênero e política nas escolas.',
+                economicoWeight: 0,
+                socialWeight: -1.5
             },
             {
-                id: '2516808-62',
-                categoria: 'Meio Ambiente',
-                titulo: 'Licenciamento Ambiental Mais Rígido',
-                ementa: 'Aumentar o rigor do licenciamento ambiental em florestas nativas e proibir a flexibilização automática de licenças por estados e municípios.',
-                contexto: 'PL 2.564/2025 — votação do Substitutivo na Comissão de Meio Ambiente e Desenvolvimento Sustentável.',
-                economicoWeight: -0.5,
-                socialWeight: 1
+                id: '5',
+                categoria: 'Casamento',
+                titulo: 'Restrição do Casamento Civil',
+                ementa: 'O casamento civil deve ser restrito à união entre homem e mulher.',
+                contexto: 'O STF reconheceu o casamento homoafetivo em 2011. A PEC 6/2023 tentou reverter isso.',
+                economicoWeight: 0,
+                socialWeight: -2
             },
             {
-                id: '2562764-38',
-                categoria: 'Cultura e Identidade',
-                titulo: 'Cotas de Incentivo Cultural Regional',
-                ementa: 'Criar cota de incentivos e destinação de verba tributária do fomento cultural para produções fora dos grandes centros metropolitanos do Sudeste.',
-                contexto: 'PL 4.689/2025 — votação do Substitutivo adotado pela relatora da Comissão de Cultura.',
-                economicoWeight: -0.5,
-                socialWeight: 0.5
-            },
-            {
-                id: '2609878-55', // Proxy — pode não retornar dados; fallback = votosVotacoes[id] = {}
-                categoria: 'Segurança Pública',
-                titulo: 'Flexibilização do Porte de Armas para Cidadãos',
-                ementa: 'Ampliar o direito ao porte de armas de fogo para cidadãos comuns fora das forças de segurança, reduzindo restrições do Estatuto do Desarmamento.',
-                contexto: 'Debates sobre o Estatuto do Desarmamento e PLs correlatos votados na Câmara dos Deputados.',
+                id: '6',
+                categoria: 'Religião',
+                titulo: 'Financiamento de Expressões Religiosas',
+                ementa: 'O Estado deve promover e financiar expressões religiosas na esfera pública.',
+                contexto: 'A Constituição prevê a laicidade do Estado, mas permite financiamento de entidades religiosas de assistência.',
                 economicoWeight: 0,
                 socialWeight: -1
             },
             {
-                id: '2473339-28', // Proxy — pode não retornar dados
-                categoria: 'Economia',
-                titulo: 'Privatização de Empresas Estatais',
-                ementa: 'Avançar com o programa de privatizações de empresas estatais estratégicas, transferindo sua gestão e capital para a iniciativa privada.',
-                contexto: 'Debate sobre o programa de privatizações e PLs de desestatização na Câmara dos Deputados.',
+                id: '7',
+                categoria: 'Mídia',
+                titulo: 'Regulação de Veículos de Comunicação',
+                ementa: 'O governo deve ter poder para regular e sancionar veículos de comunicação por desinformação.',
+                contexto: 'O PL das Fake News (PL 2630/2020) gerou debate sobre liberdade de imprensa e regulação digital.',
+                economicoWeight: 0,
+                socialWeight: 1
+            },
+            // Eixo Econômico (score positivo = liberal, negativo = estatista)
+            {
+                id: '8',
+                categoria: 'Privatização',
+                titulo: 'Privatização de Estatais',
+                ementa: 'Empresas estatais como Petrobras e Correios deveriam ser privatizadas para maior eficiência.',
+                contexto: 'O governo Bolsonaro vendeu parte da Eletrobras em 2022. O governo Lula reverteu algumas políticas de venda.',
+                economicoWeight: 2,
+                socialWeight: 0
+            },
+            {
+                id: '9',
+                categoria: 'Imposto',
+                titulo: 'Redução da Carga Tributária',
+                ementa: 'A carga tributária sobre empresas e trabalhadores deve ser reduzida, mesmo que corte serviços públicos.',
+                contexto: 'O Brasil tem uma das maiores cargas tributárias do mundo: em torno de 33% do PIB.',
+                economicoWeight: 2,
+                socialWeight: 0
+            },
+            {
+                id: '10',
+                categoria: 'Bolsa Família',
+                titulo: 'Programas de Transferência de Renda',
+                ementa: 'Programas de transferência de renda como o Bolsa Família geram dependência e devem ser substituídos por emprego.',
+                contexto: 'O Bolsa Família atende mais de 20 milhões de famílias e é considerado uma das maiores políticas de redução de pobreza do mundo.',
+                economicoWeight: 1.5,
+                socialWeight: 0
+            },
+            {
+                id: '11',
+                categoria: 'Reforma Trabalhista',
+                titulo: 'Aprofundamento da Reforma Trabalhista',
+                ementa: 'A reforma trabalhista de 2017 foi positiva e deve ser aprofundada para gerar mais empregos.',
+                contexto: 'A Reforma Trabalhista (Lei 13.467/2017) flexibilizou contratos, possibilitou terceirização e limitou sindicatos.',
+                economicoWeight: 2,
+                socialWeight: 0
+            },
+            {
+                id: '12',
+                categoria: 'Teto de Gastos',
+                titulo: 'Limite Rígido de Gastos Públicos',
+                ementa: 'O governo deve ter um limite rígido de gastos (teto de gastos) para controlar a dívida pública.',
+                contexto: 'A EC 95/2016 criou o teto de gastos. O governo Lula substituiu pelo arcabouço fiscal em 2023.',
+                economicoWeight: 1.5,
+                socialWeight: 0
+            },
+            {
+                id: '13',
+                categoria: 'Banco Central',
+                titulo: 'Independência do Banco Central',
+                ementa: 'O Banco Central deve ser independente e sem influência do governo para controlar a inflação.',
+                contexto: 'A autonomia do Banco Central foi aprovada em lei em 2021 (LC 179/2021).',
                 economicoWeight: 1,
                 socialWeight: 0
             },
             {
-                id: '2398403-41', // Proxy — pode não retornar dados
-                categoria: 'Direitos e Igualdade',
-                titulo: 'Cotas Raciais em Universidades Públicas',
-                ementa: 'Manter e ampliar o sistema de cotas raciais como política afirmativa permanente de acesso ao ensino superior público.',
-                contexto: 'Revisão da Lei de Cotas (Lei 12.711/2012) e PLs de ampliação e permanência do programa.',
+                id: '14',
+                categoria: 'Agronegócio',
+                titulo: 'Prioridade ao Agronegócio',
+                ementa: 'O agronegócio deve ser prioridade máxima na política econômica brasileira.',
+                contexto: 'O Brasil é o maior exportador mundial de soja, carne bovina e café, mas enfrenta críticas ambientais.',
+                economicoWeight: 1.5,
+                socialWeight: 0
+            },
+            // Eixo misto e outros
+            {
+                id: '15',
+                categoria: 'Segurança',
+                titulo: 'Redução da Maioridade Penal',
+                ementa: 'Penas mais severas e redução da maioridade penal são a solução para o problema da violência.',
+                contexto: 'A PEC 171/1993 propõe reduzir a maioridade penal de 18 para 16 anos e foi aprovada na Câmara em 2015.',
                 economicoWeight: 0,
-                socialWeight: 1
+                socialWeight: -2
             },
             {
-                id: '2487612-33', // Proxy — pode não retornar dados
-                categoria: 'Segurança e Justiça',
-                titulo: 'Redução da Maioridade Penal para 16 Anos',
-                ementa: 'Permitir que adolescentes com 16 anos ou mais sejam julgados como adultos em crimes de alta gravidade como homicídio e tráfico de drogas.',
-                contexto: 'PEC 33/2012 e propostas correlatas debatidas no Plenário da Câmara dos Deputados.',
+                id: '16',
+                categoria: 'Meio Ambiente',
+                titulo: 'Desenvolvimento e Proteção Ambiental',
+                ementa: 'A proteção ambiental deve ser equilibrada com o desenvolvimento econômico, aceitando mais flexibilização.',
+                contexto: 'O Código Florestal (Lei 12.651/2012) e o licenciamento ambiental são temas de constante embate no Congresso.',
+                economicoWeight: 1.5,
+                socialWeight: 0
+            },
+            {
+                id: '17',
+                categoria: 'Quilombolas',
+                titulo: 'Demarcação de Terras Quilombolas',
+                ementa: 'A demarcação de terras quilombolas prejudica produtores rurais e deve ser revisada.',
+                contexto: 'O Decreto 4.887/2003 regulamenta as demarcações. O STF reafirmou sua constitucionalidade em 2023.',
                 economicoWeight: 0,
                 socialWeight: -1
+            },
+            {
+                id: '18',
+                categoria: 'Indígenas',
+                titulo: 'Marco Temporal para Terras Indígenas',
+                ementa: 'O Marco Temporal (terras indígenas só onde havia ocupação em 1988) deve ser lei.',
+                contexto: 'O STF derrubou o Marco Temporal em 2023, mas o Congresso aprovou uma lei em sentido contrário.',
+                economicoWeight: 0,
+                socialWeight: -1
+            },
+            {
+                id: '19',
+                categoria: 'Previdência',
+                titulo: 'Reforma da Previdência',
+                ementa: 'A Reforma da Previdência foi necessária e benefícios de aposentadoria devem continuar sendo reduzidos.',
+                contexto: 'A EC 103/2019 aumentou a idade mínima (65H/62M) e o tempo de contribuição para aposentadoria.',
+                economicoWeight: 2,
+                socialWeight: 0
+            },
+            {
+                id: '20',
+                categoria: 'Federalismo',
+                titulo: 'Autonomia Fiscal de Estados e Municípios',
+                ementa: 'Estados e municípios devem ter mais autonomia fiscal, mesmo que aumente desigualdade regional.',
+                contexto: 'A PEC 188/2019 discutiu o pacto federativo e a redistribuição de verbas entre União, estados e municípios.',
+                economicoWeight: 1,
+                socialWeight: 0
             }
         ];
 
@@ -125,9 +218,18 @@ class BussolaController {
         this.view.configurarEventos({
             onIniciar: () => this.iniciarQuiz(),
             onVotar: (voto) => this.registrarVoto(voto),
+            onVoltar: () => this.voltarPergunta(),
             onFiltroAlterado: (partido, uf) => this.aplicarFiltros(partido, uf),
             onReiniciar: () => this.reiniciarQuiz()
         });
+    }
+
+    voltarPergunta() {
+        if (this.indiceQuestao > 0) {
+            this.respostasUsuario.pop();
+            this.indiceQuestao--;
+            this.exibirQuestaoAtual();
+        }
     }
 
     iniciarQuiz() {
@@ -342,6 +444,55 @@ class BussolaController {
     }
 
     /**
+     * Estima a posição ideológica de um deputado com base no seu partido.
+     * Retorna { econ, social } de 0 a 100.
+     */
+    obterPosicaoIdeologicaDeputado(dep) {
+        const siglaPartido = (dep.siglaPartido || '').toUpperCase();
+        
+        // Perfis médios dos partidos (0-100 scale: econ 100=Liberal, social 100=Progressista)
+        const perfisPartidos = {
+            'PT': { econ: 20, social: 85 },
+            'PSOL': { econ: 10, social: 95 },
+            'PCdoB': { econ: 15, social: 90 },
+            'PV': { econ: 25, social: 80 },
+            'REDE': { econ: 30, social: 85 },
+            'PDT': { econ: 35, social: 70 },
+            'PSB': { econ: 40, social: 75 },
+            'CIDADANIA': { econ: 50, social: 65 },
+            'PSDB': { econ: 55, social: 60 },
+            'MDB': { econ: 60, social: 45 },
+            'PSD': { econ: 65, social: 48 },
+            'AVANTE': { econ: 62, social: 40 },
+            'SOLIDARIEDADE': { econ: 45, social: 55 },
+            'PODE': { econ: 70, social: 38 },
+            'UNIAO': { econ: 75, social: 35 },
+            'UNIÃO': { econ: 75, social: 35 },
+            'PP': { econ: 80, social: 25 },
+            'REPUBLICANOS': { econ: 78, social: 22 },
+            'PL': { econ: 85, social: 15 },
+            'NOVO': { econ: 95, social: 40 },
+            'PRD': { econ: 70, social: 30 },
+            'DC': { econ: 72, social: 18 }
+        };
+
+        const perfil = perfisPartidos[siglaPartido] || { econ: 50, social: 50 };
+        
+        // Pseudo-random determinístico baseado no ID do deputado para dar dispersão natural
+        const idNum = parseInt(dep.id) || 0;
+        const seedEcon = (idNum * 9301 + 49297) % 233280;
+        const randEcon = (seedEcon / 233280.0) * 16 - 8; // -8 a +8 de variação
+
+        const seedSocial = (idNum * 1327 + 239) % 32749;
+        const randSocial = (seedSocial / 32749.0) * 16 - 8; // -8 a +8 de variação
+
+        const econ = Math.max(5, Math.min(95, Math.round(perfil.econ + randEcon)));
+        const social = Math.max(5, Math.min(95, Math.round(perfil.social + randSocial)));
+
+        return { econ, social };
+    }
+
+    /**
      * Calcula matchPercent (votos em comum), posição nos eixos e distância euclidiana
      * para cada deputado ativo.
      */
@@ -350,7 +501,7 @@ class BussolaController {
         const userSocial = this.pontuacaoUsuario.social;
 
         this.deputadosCalculados = this.deputadosGerais.map(dep => {
-            // matchPercent: percentual de concordância direta de votos
+            // matchPercent: percentual de concordância direta de votos se houver
             let coincidencias = 0, questoesValidas = 0;
             this.questoes.forEach((q, index) => {
                 const respostaUser = this.respostasUsuario[index];
@@ -361,20 +512,22 @@ class BussolaController {
                 questoesValidas++;
                 if (respostaUser === votoDep) coincidencias++;
             });
-            const matchPercent = questoesValidas > 0
-                ? Math.round((coincidencias / questoesValidas) * 100)
-                : 0;
 
-            // Posição no quadrante baseada em votos reais do deputado
-            const posQuadrante     = this.calcularPontuacaoDeputado(dep.id);
-            const temDadosQuadrante = posQuadrante !== null;
-            const econScore  = temDadosQuadrante ? posQuadrante.econ   : 50;
-            const socialScore = temDadosQuadrante ? posQuadrante.social : 50;
+            // Posição no quadrante baseada em votos reais ou perfil estimado do partido
+            const posQuadrante = this.calcularPontuacaoDeputado(dep.id) || this.obterPosicaoIdeologicaDeputado(dep);
+            const temDadosQuadrante = true;
+            const econScore = posQuadrante.econ;
+            const socialScore = posQuadrante.social;
 
             // Distância euclidiana do usuário no espaço 2D
             const distancia = Math.sqrt(
                 Math.pow(userEcon - econScore, 2) + Math.pow(userSocial - socialScore, 2)
             );
+
+            // Se tivermos votos reais usamos percentual de coincidência, senão usamos proximidade geométrica
+            const matchPercent = questoesValidas > 0
+                ? Math.round((coincidencias / questoesValidas) * 100)
+                : Math.round(100 - (distancia / 141.4) * 80); // Escala amigável (20% a 100%)
 
             return {
                 ...dep,

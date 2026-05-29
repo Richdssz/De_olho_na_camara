@@ -201,12 +201,37 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Botão toggle
     const btn = document.getElementById('theme-toggle');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-    });
+    if (btn) {
+        btn.addEventListener('click', () => {
+          const current = document.documentElement.getAttribute('data-theme');
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('theme', next);
+        });
+    }
+
+    // Modal de Ajuda Global
+    const btnAjuda = document.getElementById('btn-ajuda');
+    const modalAjuda = document.getElementById('modal-ajuda');
+    if (btnAjuda && modalAjuda) {
+        btnAjuda.addEventListener('click', () => {
+            modalAjuda.hidden = false;
+        });
+        
+        ['btn-fechar-ajuda', 'btn-fechar-ajuda-2'].forEach(id => {
+            const btnFechar = document.getElementById(id);
+            if (btnFechar) {
+                btnFechar.addEventListener('click', () => {
+                    modalAjuda.hidden = true;
+                });
+            }
+        });
+        
+        modalAjuda.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                e.currentTarget.hidden = true;
+            }
+        });
+    }
 });
 

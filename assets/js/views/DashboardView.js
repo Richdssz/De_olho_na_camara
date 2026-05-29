@@ -7,6 +7,12 @@ class DashboardView {
         this.grid = document.getElementById('deputados-grid');
         this.ctxGrafico = document.getElementById('graficoPartidos')?.getContext('2d');
         this.chartInstancia = null;
+
+        // KPIs
+        this.kpiDeputados = document.getElementById('kpi-deputados');
+        this.kpiTotalCeap = document.getElementById('kpi-total-ceap');
+        this.kpiVotacoes = document.getElementById('kpi-votacoes');
+        this.kpiPartidos = document.getElementById('kpi-partidos');
     }
 
     /**
@@ -119,7 +125,20 @@ class DashboardView {
     }
 
     /**
-     * Renderiza o gráfico de pizza de partidos usando Chart.js.
+     * Renderiza os 4 KPIs no topo do painel.
+     */
+    renderizarKPIs(dados) {
+        if (this.kpiDeputados) this.kpiDeputados.textContent = dados.totalDeputados || '0';
+        if (this.kpiTotalCeap) {
+            const formatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(dados.totalCeap || 0);
+            this.kpiTotalCeap.textContent = formatted;
+        }
+        if (this.kpiVotacoes) this.kpiVotacoes.textContent = dados.totalVotacoes || '0';
+        if (this.kpiPartidos) this.kpiPartidos.textContent = dados.totalPartidos || '0';
+    }
+
+    /**
+     * Renderiza o gráfico de pizza de partidos usando Chart.js com todos os partidos e cores oficiais.
      * @param {Array} deputados 
      */
     renderizarGraficoPartidos(deputados) {
@@ -131,25 +150,25 @@ class DashboardView {
             contagemPartidos[partido] = (contagemPartidos[partido] || 0) + 1;
         });
 
-        const labels = Object.keys(contagemPartidos);
-        const data = Object.values(contagemPartidos);
+        // Ordenar do maior para o menor número de membros
+        const partidosOrdenados = Object.keys(contagemPartidos).sort((a, b) => contagemPartidos[b] - contagemPartidos[a]);
+        
+        const labels = partidosOrdenados;
+        const data = partidosOrdenados.map(p => contagemPartidos[p]);
+
+        const fullNames = partidosOrdenados.map(p => {
+            const fallback = window.PartidoModel.getFallbackData(p);
+            return fallback ? fallback.nomeCompleto : p;
+        });
+
+        const backgroundColors = partidosOrdenados.map(p => {
+            const fallback = window.PartidoModel.getFallbackData(p);
+            return fallback ? fallback.corHex : '#7f8c8d';
+        });
 
         if (this.chartInstancia) {
             this.chartInstancia.destroy();
         }
-
-        const backgroundColors = [
-            '#0f766e', // teal-700
-            '#16a34a', // green-600
-            '#004D40', // dark teal
-            '#f59e0b', // amber-500
-            '#64748b', // slate-500
-            '#059669', // emerald-600
-            '#0d9488', // teal-600
-            '#ca8a04', // yellow-600
-            '#334155', // slate-700
-            '#10b981'  // emerald-500
-        ];
 
         this.chartInstancia = new Chart(this.ctxGrafico, {
             type: 'doughnut',
@@ -157,9 +176,9 @@ class DashboardView {
                 labels: labels,
                 datasets: [{
                     data: data,
-                    backgroundColor: backgroundColors.slice(0, labels.length),
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
+                    backgroundColor: backgroundColors,
+                    borderWidth: 1,
+                    borderColor: 'var(--bg-secundario)'
                 }]
             },
             options: {
@@ -169,18 +188,22 @@ class DashboardView {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            boxWidth: 12,
-                            padding: 20,
-                            font: { size: 12, weight: '500' }
+                            boxWidth: 8,
+                            padding: 10,
+                            color: 'var(--texto-secundario)',
+                            font: { size: 9, weight: '500' }
                         }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                const value = context.raw;
+                                const idx = context.dataIndex;
+                                const sigla = labels[idx];
+                                const fullName = fullNames[idx];
+                                const val = context.raw;
                                 const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                const percentage = ((value / total) * 100).toFixed(1);
-                                return ` ${context.label}: ${value} deputado(s) (${percentage}%)`;
+                                const percentage = ((val / total) * 100).toFixed(1);
+                                return ` ${fullName} (${sigla}): ${val} deputado(s) (${percentage}%)`;
                             }
                         }
                     }

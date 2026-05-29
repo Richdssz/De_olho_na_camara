@@ -72,9 +72,15 @@ class DeputadosView {
         }
     }
 
-    mostrarErro() {
+    mostrarErro(mensagem = 'Falha ao carregar os dados.') {
         if (!this.grid) return;
-        this.grid.innerHTML = '<p class="text-red-500 col-span-full text-center py-20 font-medium">Falha ao carregar os dados.</p>';
+        this.grid.innerHTML = `<div class="col-span-full text-center py-20 flex flex-col items-center justify-center">
+            <i class="fa-solid fa-circle-exclamation text-red-400 text-3xl mb-3"></i>
+            <p class="text-red-500 font-medium">${mensagem}</p>
+            <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white rounded-lg text-sm font-medium transition-colors">
+                <i class="fa-solid fa-rotate mr-2"></i>Tentar novamente
+            </button>
+        </div>`;
     }
 
     mostrarVazio() {
@@ -96,6 +102,11 @@ class DeputadosView {
         // Limpa opções antigas exceto a primeira ("Todos os Partidos")
         while (this.filtroPartido.options.length > 1) {
             this.filtroPartido.remove(1);
+        }
+
+        if (!Array.isArray(deputados)) {
+            console.error("preencherFiltroPartidos: deputados não é um array válido", deputados);
+            return;
         }
 
         // Extrai siglas únicas dos deputados e ordena

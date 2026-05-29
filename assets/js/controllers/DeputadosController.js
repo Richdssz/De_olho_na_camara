@@ -14,6 +14,9 @@ class DeputadosController {
     }
 
     async init() {
+        // Registra o controller ativo globalmente
+        window.activeController = this;
+
         // Registra os eventos na View
         this.view.onFiltrar(this.aplicarFiltrosESort.bind(this));
         this.view.onPaginar(this.mudarPagina.bind(this));
@@ -37,20 +40,47 @@ class DeputadosController {
             // Busca todos deputados
             const response = await window.DeputadoModel.listar({ itens: 600 });
             if (!response.success) {
-                this.view.mostrarErro();
+                console.error("DeputadosController: falha ao carregar lista do DeputadoModel", response.error);
+                this.view.mostrarErro(response.error || "Falha ao carregar os dados.");
                 return;
             }
 
-            this.todosDeputados = response.data;
+            this.todosDeputados = response.data || [];
             this.view.preencherFiltroPartidos(this.todosDeputados);
-            
-            // Carregar filtros da URL se existirem
+
+            // Carregar filtros da URL ou do localStorage
             const urlParams = new URLSearchParams(window.location.search);
-            const nome = urlParams.get('nome') || '';
-            const uf = urlParams.get('uf') || '';
-            const partido = urlParams.get('partido') || '';
-            const ordem = urlParams.get('ordem') || 'nome';
-            const page = parseInt(urlParams.get('page')) || 1;
+            let nome = '';
+            let uf = '';
+            let partido = '';
+            let ordem = 'nome';
+            let page = 1;
+
+            const hasUrlParams = urlParams.has('nome') || urlParams.has('uf') || urlParams.has('partido') || urlParams.has('ordem') || urlParams.has('page');
+            if (hasUrlParams) {
+                nome = urlParams.get('nome') || '';
+                uf = urlParams.get('uf') || '';
+                partido = urlParams.get('partido') || '';
+                ordem = urlParams.get('ordem') || 'nome';
+                page = parseInt(urlParams.get('page')) || 1;
+            } else {
+                const savedState = localStorage.getItem('deputados_state');
+                if (savedState) {
+                    try {
+                        const parsed = JSON.parse(savedState);
+                        if (parsed && typeof parsed === 'object') {
+                            nome = (parsed.nome && typeof parsed.nome === 'string') ? parsed.nome.trim() : '';
+                            uf = (parsed.uf && typeof parsed.uf === 'string') ? parsed.uf.trim() : '';
+                            partido = (parsed.partido && typeof parsed.partido === 'string') ? parsed.partido.trim() : '';
+                            ordem = (parsed.ordem && ['nome', 'siglaPartido', 'siglaUf'].includes(parsed.ordem)) ? parsed.ordem : 'nome';
+                            page = Number.isFinite(parseInt(parsed.page)) && parseInt(parsed.page) > 0 ? parseInt(parsed.page) : 1;
+                        }
+                    } catch (e) {
+                        console.error("DeputadosController: erro ao restaurar estado do localStorage, limpando:", e);
+                        localStorage.removeItem('deputados_state');
+                    }
+                }
+            }
 
             this.view.setFiltros({ nome, uf, partido, ordem });
             this.paginaAtual = page;
@@ -58,8 +88,8 @@ class DeputadosController {
             this.aplicarFiltrosESort(true);
 
         } catch (error) {
-            console.error("DeputadosController: erro", error);
-            this.view.mostrarErro();
+            console.error("DeputadosController: erro inesperado em carregarDadosIniciais", error);
+            this.view.mostrarErro(error.message || "Erro inesperado ao carregar.");
         }
     }
 
@@ -105,7 +135,21 @@ class DeputadosController {
         }
 
         urlParams.set('page', this.paginaAtual);
-        window.history.replaceState(null, '', window.location.pathname + '?' + urlParams.toString());
+        try {
+            window.history.replaceState(null, '', window.location.pathname + '?' + urlParams.toString());
+        } catch (e) {
+            console.warn("Nao foi possivel atualizar a URL via history API:", e);
+        }
+
+        // Salvar estado no localStorage
+        const state = {
+            nome: filtros.nome,
+            uf: filtros.uf,
+            partido: filtros.partido,
+            ordem: filtros.ordem,
+            page: this.paginaAtual
+        };
+        localStorage.setItem('deputados_state', JSON.stringify(state));
 
         this.renderizarPaginaAtual();
     }
@@ -121,9 +165,30 @@ class DeputadosController {
         const indexFim = Math.min(indexInicio + this.itensPorPagina, this.deputadosFiltrados.length);
         const deputadosPagina = this.deputadosFiltrados.slice(indexInicio, indexFim);
 
+        // Renderiza o grid IMEDIATAMENTE (sem esperar ratings do Back4App)
+        this.view.renderizarGrid(deputadosPagina, this.monitoradosIds, {});
+
+        const totalPaginas = Math.ceil(this.deputadosFiltrados.length / this.itensPorPagina) || 1;
+        this.view.atualizarPaginacaoInfo(this.deputadosFiltrados.length, this.paginaAtual, totalPaginas, this.itensPorPagina);
+
+        // Busca ratings em segundo plano e atualiza o grid quando disponível
+        this._carregarRatingsGrid(deputadosPagina);
+    }
+
+    async _carregarRatingsGrid(deputadosPagina) {
         const ratingsMap = {};
         try {
-            const avaliacoesResp = await window.Back4AppService.getPublicAll("Avaliacao", {}).catch(() => []);
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout ao buscar avaliações")), 8000)
+            );
+            const fetchPromise = window.Back4AppService
+                ? window.Back4AppService.getPublicAll("Avaliacao", {}).catch(() => [])
+                : Promise.resolve([]);
+
+            const avaliacoesResp = await Promise.race([fetchPromise, timeoutPromise]).catch(() => []);
+            if (!Array.isArray(avaliacoesResp)) {
+                throw new Error("Resposta de avaliações não é um array");
+            }
             avaliacoesResp.forEach(item => {
                 const depId = item.get("deputadoId");
                 const nota = item.get("nota") || 0;
@@ -137,13 +202,13 @@ class DeputadosController {
                 ratingsMap[id] = ratingsMap[id].total / ratingsMap[id].count;
             });
         } catch (err) {
-            console.error("Erro ao obter notas médias:", err);
+            console.error("Erro ao obter notas medias:", err);
         }
 
-        this.view.renderizarGrid(deputadosPagina, this.monitoradosIds, ratingsMap);
-        
-        const totalPaginas = Math.ceil(this.deputadosFiltrados.length / this.itensPorPagina) || 1;
-        this.view.atualizarPaginacaoInfo(this.deputadosFiltrados.length, this.paginaAtual, totalPaginas, this.itensPorPagina);
+        // Re-renderiza o grid com as notas (se houver alguma)
+        if (Object.keys(ratingsMap).length > 0) {
+            this.view.renderizarGrid(deputadosPagina, this.monitoradosIds, ratingsMap);
+        }
     }
 
     mudarPagina(direcao) {
@@ -155,7 +220,22 @@ class DeputadosController {
             
             const urlParams = new URLSearchParams(window.location.search);
             urlParams.set('page', this.paginaAtual);
-            window.history.replaceState(null, '', window.location.pathname + '?' + urlParams.toString());
+            try {
+                window.history.replaceState(null, '', window.location.pathname + '?' + urlParams.toString());
+            } catch (e) {
+                console.warn("Nao foi possivel atualizar a URL via history API:", e);
+            }
+
+            // Salvar estado no localStorage
+            const filtros = this.view.getFiltros();
+            const state = {
+                nome: filtros.nome,
+                uf: filtros.uf,
+                partido: filtros.partido,
+                ordem: filtros.ordem,
+                page: this.paginaAtual
+            };
+            localStorage.setItem('deputados_state', JSON.stringify(state));
 
             this.renderizarPaginaAtual();
             this.view.scrollParaTopo();
@@ -205,9 +285,18 @@ class DeputadosController {
 window.DeputadosController = DeputadosController;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Apenas se estivermos na página de deputados
-    if (document.getElementById('deputados-grid')) {
+    if (!document.getElementById('deputados-grid')) return;
+
+    try {
         const controller = new DeputadosController();
-        controller.init();
+        controller.init().catch(err => {
+            console.error("DeputadosController: falha critica na inicializacao:", err);
+            const grid = document.getElementById('deputados-grid');
+            if (grid) {
+                grid.innerHTML = '<p class="text-red-500 col-span-full text-center py-20 font-medium">Erro inesperado ao inicializar a pagina. Recarregue ou tente novamente.</p>';
+            }
+        });
+    } catch (err) {
+        console.error("DeputadosController: erro sincrono na construcao:", err);
     }
 });

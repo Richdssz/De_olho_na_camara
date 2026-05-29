@@ -25,19 +25,44 @@ class DeputadoModel {
     static async listar(filtros = {}) {
         const cacheKey = `deputados_lista_${JSON.stringify(filtros)}`;
         const cached = window.CacheService ? window.CacheService.getLocal(cacheKey) : null;
-        
-        if (cached) {
+
+        if (cached && Array.isArray(cached)) {
             return this._formatResponse(true, cached, 'cache');
+        }
+
+        // Remove cache potentialmente corrompido antes de tentar a API
+        if (cached && !Array.isArray(cached) && window.CacheService) {
+            window.CacheService.removeLocal(cacheKey);
         }
 
         try {
             const data = await window.camaraApi.listarDeputados(filtros);
+            if (!Array.isArray(data)) {
+                throw new Error("Dados retornados da API da Câmara não são um array.");
+            }
             if (window.CacheService) {
                 window.CacheService.setLocal(cacheKey, data, 60); // Cache de 1h
             }
             return this._formatResponse(true, data, 'api');
         } catch (error) {
-            return this._formatResponse(false, null, 'api', error.message);
+            console.error("[DeputadoModel] Erro ao buscar/listar deputados da API:", error);
+            // Limpa cache e tenta uma segunda vez (sem cache)
+            if (window.CacheService) {
+                window.CacheService.removeLocal(cacheKey);
+            }
+            try {
+                const data = await window.camaraApi.listarDeputados(filtros);
+                if (!Array.isArray(data)) {
+                    throw new Error("Dados retornados da API da Câmara não são um array (2a tentativa).");
+                }
+                if (window.CacheService) {
+                    window.CacheService.setLocal(cacheKey, data, 60);
+                }
+                return this._formatResponse(true, data, 'api');
+            } catch (retryError) {
+                console.error("[DeputadoModel] Segunda tentativa também falhou:", retryError);
+                return this._formatResponse(false, null, 'api', retryError.message);
+            }
         }
     }
 
@@ -201,6 +226,16 @@ class DeputadoModel {
         } catch (error) {
             return this._formatResponse(false, null, 'api', error.message);
         }
+    }
+
+    async listarTodos() {
+        const res = await DeputadoModel.listar({ itens: 600 });
+        return res.success ? res.data : [];
+    }
+
+    static async listarTodos() {
+        const res = await DeputadoModel.listar({ itens: 600 });
+        return res.success ? res.data : [];
     }
 }
 

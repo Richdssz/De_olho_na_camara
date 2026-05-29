@@ -256,25 +256,39 @@ class PerfilDeputadoView {
 
         votos.forEach(v => {
             const orientacoesList = orientacoes[v.votacaoId] || [];
-            const orientacaoPartido = orientacoesList.find(o => 
-                o.siglaPartidoBloco && o.siglaPartidoBloco.toUpperCase() === siglaPartido.toUpperCase()
+            // Busca orientacao: primeiro por sigla exata, depois por federacao que contem a sigla
+            const siglaUpper = (siglaPartido || '').toUpperCase();
+            let orientacaoPartido = orientacoesList.find(o =>
+                o.siglaPartidoBloco && o.siglaPartidoBloco.toUpperCase() === siglaUpper
             );
-            const orientacaoVoto = orientacaoPartido ? orientacaoPartido.orientacaoVoto : 'Liberado';
+            if (!orientacaoPartido) {
+                orientacaoPartido = orientacoesList.find(o =>
+                    o.siglaPartidoBloco && o.siglaPartidoBloco.toUpperCase().includes(siglaUpper)
+                );
+            }
+            const orientacaoVoto = orientacaoPartido ? (orientacaoPartido.orientacaoVoto || '') : '';
 
             let badgeVotoClass = 'bg-gray-100 text-gray-700 border-gray-200';
-            let votoTexto = v.voto;
+            let votoTexto = v.voto || 'Ausente';
             if (v.voto === 'Sim') badgeVotoClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
             else if (v.voto === 'Não' || v.voto === 'Nao') badgeVotoClass = 'bg-red-50 text-red-700 border-red-200';
             else if (v.voto === 'Abstenção' || v.voto === 'Abstencao') badgeVotoClass = 'bg-yellow-50 text-yellow-700 border-yellow-200';
             else if (v.voto === 'Obstrução' || v.voto === 'Obstrucao') badgeVotoClass = 'bg-amber-50 text-amber-700 border-amber-200';
             else if (v.voto === 'Ausente') badgeVotoClass = 'bg-gray-200 text-gray-600 border-gray-300';
 
-            let badgeAlinhamentoHTML = `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">Sem Orientação</span>`;
-            
-            if (orientacaoVoto && orientacaoVoto !== '' && orientacaoVoto !== 'Liberado') {
+            let orientacaoExibicao = '-';
+            if (orientacaoPartido) {
+                orientacaoExibicao = orientacaoVoto || 'Sem Orientação';
+            } else {
+                orientacaoExibicao = 'Sem Orientação';
+            }
+
+            let badgeAlinhamentoHTML = `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">Sem Dados</span>`;
+
+            if (orientacaoPartido && orientacaoVoto && orientacaoVoto !== 'Liberado') {
                 const votoNormalizado = window.analytics._normalizarVoto(v.voto);
                 const orientacaoNormalizada = window.analytics._normalizarVoto(orientacaoVoto);
-                
+
                 if (votoNormalizado && orientacaoNormalizada) {
                     if (votoNormalizado === orientacaoNormalizada) {
                         badgeAlinhamentoHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-circle-check"></i> Alinhado</span>`;
@@ -282,9 +296,11 @@ class PerfilDeputadoView {
                         badgeAlinhamentoHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200"><i class="fa-solid fa-circle-xmark"></i> Divergente</span>`;
                     }
                 }
+            } else if (orientacaoPartido && orientacaoVoto === 'Liberado') {
+                badgeAlinhamentoHTML = `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">Partido Liberou</span>`;
             }
 
-            const dataFormatada = new Date(v.data).toLocaleDateString('pt-BR');
+            const dataFormatada = v.data ? new Date(v.data).toLocaleDateString('pt-BR') : '-';
 
             const tr = document.createElement('tr');
             tr.className = 'hover:bg-teal-50/40 cursor-pointer transition border-b border-gray-100';
@@ -294,7 +310,7 @@ class PerfilDeputadoView {
                 <td class="py-4 px-6 text-center">
                     <span class="px-2.5 py-1 rounded-lg text-xs font-semibold border ${badgeVotoClass}">${votoTexto}</span>
                 </td>
-                <td class="py-4 px-6 text-center font-semibold text-gray-700">${orientacaoVoto || '-'}</td>
+                <td class="py-4 px-6 text-center font-semibold text-gray-700">${orientacaoExibicao}</td>
                 <td class="py-4 px-6 text-center">${badgeAlinhamentoHTML}</td>
             `;
             tr.addEventListener('click', () => {
@@ -947,47 +963,6 @@ class PerfilDeputadoView {
                 }).join('');
             }
         }
-    }
-
-    renderizarDiscursos(discursos) {
-        const container = document.getElementById('discursos-container');
-        const countEl = document.getElementById('discursos-count');
-        if (countEl) countEl.textContent = discursos ? discursos.length : 0;
-
-        if (!container) return;
-
-        if (!discursos || discursos.length === 0) {
-            container.innerHTML = '<p class="text-gray-400 col-span-full text-center py-8 font-medium text-sm">Nenhum discurso recente encontrado.</p>';
-            return;
-        }
-
-        container.innerHTML = discursos.map(d => {
-            const dataStr = d.dataHoraInicio || d.dataHoraFim || '';
-            const data = dataStr ? new Date(dataStr).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
-            const hora = dataStr ? new Date(dataStr).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
-            const fase = d.faseEvento && d.faseEvento.titulo ? d.faseEvento.titulo : (d.tipoDiscurso || '');
-            const resumo = d.transcricao || d.sumario || d.keywords || 'Sem resumo disponivel.';
-            const resumoTruncado = resumo.length > 200 ? resumo.substring(0, 200) + '...' : resumo;
-            const url = d.urlTexto || d.urlInteiroTeor || '';
-
-            return `
-                <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col justify-between hover:shadow-md transition">
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-100">${data}</span>
-                            ${hora ? `<span class="text-xs text-gray-400 font-medium">${hora}</span>` : ''}
-                        </div>
-                        ${fase ? `<p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">${fase}</p>` : ''}
-                        <p class="text-sm text-gray-700 leading-relaxed font-medium">${resumoTruncado}</p>
-                    </div>
-                    ${url ? `
-                        <a href="${url}" target="_blank" class="mt-3 text-xs text-teal-600 hover:text-teal-700 font-bold flex items-center gap-1 transition-colors">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Ler inteiro teor
-                        </a>
-                    ` : ''}
-                </div>
-            `;
-        }).join('');
     }
 
     onVotacaoClick(callback) {

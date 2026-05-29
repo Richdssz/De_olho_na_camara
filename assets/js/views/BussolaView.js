@@ -17,12 +17,14 @@ class BussolaView {
         this.questionTitle = document.getElementById('quiz-question-title');
         this.questionDesc = document.getElementById('quiz-question-desc');
         this.questionContext = document.getElementById('quiz-question-context');
+        this.questionLink = document.getElementById('quiz-question-link');
         
         // Botões do Quiz
         this.btnStart = document.getElementById('btn-start-quiz');
         this.btnYes = document.getElementById('btn-vote-yes');
         this.btnNo = document.getElementById('btn-vote-no');
         this.btnSkip = document.getElementById('btn-vote-skip');
+        this.btnBack = document.getElementById('btn-vote-back');
         this.btnRestart = document.getElementById('btn-restart-quiz');
         
         // Loader status
@@ -107,9 +109,27 @@ class BussolaView {
         if (this.progressBar) this.progressBar.style.width = `${porc}%`;
         
         if (this.questionCategory) this.questionCategory.textContent = questao.categoria || 'Geral';
-        if (this.questionTitle) this.questionTitle.textContent = questao.titulo;
-        if (this.questionDesc) this.questionDesc.textContent = questao.ementa;
+        if (this.questionTitle) {
+            this.questionTitle.textContent = questao.titulo;
+            this.questionTitle.className = "text-2xl font-black text-gray-950 leading-snug";
+        }
+        if (this.questionDesc) {
+            this.questionDesc.textContent = questao.ementa;
+            this.questionDesc.className = "text-gray-800 text-lg font-medium leading-relaxed mt-2";
+        }
         if (this.questionContext) this.questionContext.textContent = questao.contexto;
+
+        if (this.questionLink) {
+            this.questionLink.href = `https://www.camara.leg.br/busca-portal?q=${encodeURIComponent(questao.titulo)}`;
+        }
+
+        if (this.btnBack) {
+            if (index === 0) {
+                this.btnBack.classList.add('hidden');
+            } else {
+                this.btnBack.classList.remove('hidden');
+            }
+        }
     }
 
     /**
@@ -268,7 +288,12 @@ class BussolaView {
                 return `
                     <tr class="hover:bg-gray-50/50">
                         <td class="py-4 pr-4">
-                            <div class="font-extrabold text-gray-900 text-sm leading-tight">${c.titulo}</div>
+                            <div class="font-extrabold text-gray-900 text-sm leading-tight flex items-center gap-1.5">
+                                ${c.titulo}
+                                <a href="https://www.camara.leg.br/busca-portal?q=${encodeURIComponent(c.titulo)}" target="_blank" class="text-teal-600 hover:text-teal-800 text-xs inline-flex items-center" title="Pesquisar projeto na Câmara">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                </a>
+                            </div>
                             <div class="text-[11px] text-gray-400 font-medium mt-1 truncate max-w-[280px]" title="${c.ementa}">${c.ementa}</div>
                         </td>
                         <td class="py-4 px-4 text-center">
@@ -305,7 +330,7 @@ class BussolaView {
     /**
      * Liga os ouvintes de eventos da interface.
      */
-    configurarEventos({ onIniciar, onVotar, onFiltroAlterado, onReiniciar }) {
+    configurarEventos({ onIniciar, onVotar, onVoltar, onFiltroAlterado, onReiniciar }) {
         if (this.btnStart) {
             this.btnStart.addEventListener('click', onIniciar);
         }
@@ -318,6 +343,9 @@ class BussolaView {
         }
         if (this.btnSkip) {
             this.btnSkip.addEventListener('click', () => onVotar('Pular'));
+        }
+        if (this.btnBack) {
+            this.btnBack.addEventListener('click', onVoltar);
         }
         
         if (this.filterPartido) {

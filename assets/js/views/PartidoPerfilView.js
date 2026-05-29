@@ -21,6 +21,9 @@ class PartidoPerfilView {
         this.wikiResumo = document.getElementById('partido-resumo-wiki');
         this.wikiLink = document.getElementById('wiki-link');
 
+        // Hemiciclo
+        this.hemicicloContainer = document.getElementById('hemiciclo-container');
+
         // Novos elementos Financeiros
         this.filtroAno = document.getElementById('filtro-ano-partido');
         this.totalGastoBancada = document.getElementById('total-gasto-bancada');
@@ -28,8 +31,7 @@ class PartidoPerfilView {
         this.anoFinanceiroDisplay = document.getElementById('ano-financeiro-display');
         this.canvasFinance = document.getElementById('financeChart');
 
-        // Grafico de espectro ideologico interno
-        this.canvasEspectroInterno = document.getElementById('espectroInternoChart');
+
 
         // Instancias de Chart.js
         this.financeChartInstance = null;
@@ -77,11 +79,17 @@ class PartidoPerfilView {
         if (this.logo) {
             this.logo.className = "w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-gray-200 shrink-0 overflow-hidden";
             const sigla = partidoInfo.sigla;
-            const placeholder = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23f0fdf4'/><text x='50' y='55' font-family='Arial,sans-serif' font-size='28' font-weight='bold' fill='%230f766e' text-anchor='middle' dominant-baseline='middle'>${sigla}</text></svg>`;
+            const corHex = partidoInfo.corHex || '#7f8c8d';
             
-            this.logo.innerHTML = `
-                <img id="partido-logo-img" src="${partidoInfo.urlLogo || ''}" alt="Logo do ${sigla}" class="w-full h-full object-contain p-1" onerror="if (this.dataset.wikiLogo && this.src !== this.dataset.wikiLogo) { this.src = this.dataset.wikiLogo; } else { this.onerror = null; this.outerHTML = '<div id=\\'partido-logo-img\\' class=\\'w-full h-full bg-teal-50 flex items-center justify-center text-teal-700 font-bold border border-teal-100\\'>${sigla}</div>'; }">
-            `;
+            if (partidoInfo.urlLogo) {
+                this.logo.innerHTML = `
+                    <img id="partido-logo-img" src="${partidoInfo.urlLogo}" alt="Logo do ${sigla}" class="w-full h-full object-contain p-1" onerror="this.onerror = null; this.outerHTML = '<div id=\\'partido-logo-img\\' class=\\'w-full h-full flex items-center justify-center font-bold text-lg text-white\\' style=\\'background: ${corHex}\\'>${sigla}</div>';">
+                `;
+            } else {
+                this.logo.innerHTML = `
+                    <div id="partido-logo-img" class="w-full h-full flex items-center justify-center font-bold text-lg text-white" style="background: ${corHex}">${sigla}</div>
+                `;
+            }
         }
         if (this.nome) this.nome.textContent = partidoInfo.nome || partidoInfo.sigla;
         if (this.membrosCount) this.membrosCount.textContent = partidoInfo.totalMembros;
@@ -403,6 +411,180 @@ class PartidoPerfilView {
                 }
             }
         });
+    }
+
+    /**
+     * Renderiza o gráfico de bancada estilo hemiciclo com um ponto por deputado colorido por UF.
+     */
+    renderizarHemiciclo(membros) {
+        if (!this.hemicicloContainer) return;
+        this.hemicicloContainer.innerHTML = '';
+
+        if (!membros || membros.length === 0) {
+            this.hemicicloContainer.innerHTML = '<p class="text-gray-500 text-center py-6 font-semibold">Sem parlamentares nesta bancada.</p>';
+            return;
+        }
+
+        // 1. Agrupar parlamentares por UF e definir cores exclusivas por UF
+        const ufCounts = {};
+        membros.forEach(m => {
+            if (m.siglaUf) {
+                ufCounts[m.siglaUf] = (ufCounts[m.siglaUf] || 0) + 1;
+            }
+        });
+
+        // Ordenar UFs por quantidade de membros
+        const sortedUfs = Object.keys(ufCounts).sort((a, b) => ufCounts[b] - ufCounts[a]);
+
+        // Cores para as UFs (cores da paleta HSL)
+        const coresUfs = {};
+        const paleta = [
+            '#0d9488', // teal-600
+            '#22c55e', // green-500
+            '#3b82f6', // blue-500
+            '#eab308', // yellow-500
+            '#f97316', // orange-500
+            '#a855f7', // purple-500
+            '#ec4899', // pink-500
+            '#6366f1', // indigo-500
+            '#14b8a6', // teal-500
+            '#4ade80', // green-400
+            '#60a5fa', // blue-400
+            '#facc15', // yellow-400
+            '#fb923c', // orange-400
+            '#c084fc', // purple-400
+            '#f472b6', // pink-400
+            '#818cf8', // indigo-400
+            '#6b7280', // gray-500
+            '#9ca3af'  // gray-400
+        ];
+
+        sortedUfs.forEach((uf, index) => {
+            coresUfs[uf] = paleta[index % paleta.length];
+        });
+
+        // 2. Calcular posições no hemiciclo (semicírculo)
+        const svgWidth = 600;
+        const svgHeight = 320;
+        const centerX = svgWidth / 2;
+        const centerY = svgHeight - 40;
+
+        const numMembros = membros.length;
+        
+        let numRows = 1;
+        if (numMembros > 60) numRows = 4;
+        else if (numMembros > 30) numRows = 3;
+        else if (numMembros > 10) numRows = 2;
+
+        const rowRadii = [];
+        const baseRadius = 90;
+        const rowSpacing = 45;
+        for (let r = 0; r < numRows; r++) {
+            rowRadii.push(baseRadius + r * rowSpacing);
+        }
+
+        const totalRadius = rowRadii.reduce((sum, r) => sum + r, 0);
+        const membersPerRow = [];
+        let membersDistributed = 0;
+
+        for (let r = 0; r < numRows; r++) {
+            let count = Math.round((rowRadii[r] / totalRadius) * numMembros);
+            if (r === numRows - 1) {
+                count = numMembros - membersDistributed;
+            }
+            membersPerRow.push(count);
+            membersDistributed += count;
+        }
+
+        const membrosOrdenados = [...membros].sort((a, b) => {
+            const indexA = sortedUfs.indexOf(a.siglaUf);
+            const indexB = sortedUfs.indexOf(b.siglaUf);
+            return indexA - indexB;
+        });
+
+        const dots = [];
+        let memberIdx = 0;
+
+        for (let r = 0; r < numRows; r++) {
+            const count = membersPerRow[r];
+            const radius = rowRadii[r];
+            if (count <= 0) continue;
+
+            const startAngle = Math.PI - 0.2;
+            const endAngle = 0.2;
+
+            for (let i = 0; i < count; i++) {
+                if (memberIdx >= numMembros) break;
+                
+                const angle = count === 1 
+                    ? Math.PI / 2 
+                    : startAngle - (i / (count - 1)) * (startAngle - endAngle);
+
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY - radius * Math.sin(angle);
+
+                dots.push({
+                    x: Math.round(x * 10) / 10,
+                    y: Math.round(y * 10) / 10,
+                    deputado: membrosOrdenados[memberIdx]
+                });
+
+                memberIdx++;
+            }
+        }
+
+        // 3. Renderizar círculos SVG
+        const dotsHtml = dots.map(d => {
+            const color = coresUfs[d.deputado.siglaUf] || '#7f8c8d';
+            return `
+                <a href="deputado-perfil.html?id=${d.deputado.id}" class="cursor-pointer">
+                    <circle cx="${d.x}" cy="${d.y}" r="8" fill="${color}" stroke="white" stroke-width="1.5" class="hover:r-10 hover:stroke-teal-400 hover:stroke-2 transition-all duration-150 hemiciclo-dot">
+                        <title>${d.deputado.nome} (${d.deputado.siglaPartido}-${d.deputado.siglaUf})</title>
+                    </circle>
+                </a>
+            `;
+        }).join('');
+
+        const baseArcRadius = baseRadius - 20;
+        const baseArcPath = `M ${centerX - baseArcRadius} ${centerY} A ${baseArcRadius} ${baseArcRadius} 0 0 1 ${centerX + baseArcRadius} ${centerY}`;
+
+        const html = `
+            <svg viewBox="0 0 ${svgWidth} ${svgHeight}" class="w-full max-w-[600px] h-auto">
+                <path d="${baseArcPath}" fill="none" stroke="var(--borda)" stroke-width="2" stroke-dasharray="4 4" opacity="0.5"/>
+                <circle cx="${centerX}" cy="${centerY}" r="12" fill="var(--bg-terciario)" stroke="var(--borda)" stroke-width="1.5"/>
+                <path d="M ${centerX - 6} ${centerY - 2} L ${centerX + 6} ${centerY - 2} M ${centerX} ${centerY - 2} L ${centerX} ${centerY + 6}" stroke="var(--texto-secundario)" stroke-width="2" />
+                <text x="${centerX}" y="${centerY + 25}" font-size="10" font-weight="700" fill="var(--texto-mudo)" text-anchor="middle">TRIBUNA</text>
+                ${dotsHtml}
+            </svg>
+        `;
+
+        // 4. Renderizar a legenda de UFs
+        const legendaHtml = sortedUfs.map(uf => {
+            const color = coresUfs[uf] || '#7f8c8d';
+            const count = ufCounts[uf];
+            const percent = ((count / numMembros) * 100).toFixed(0);
+            return `
+                <div class="flex items-center gap-2 bg-gray-50 border border-gray-100 dark:bg-slate-800 dark:border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm">
+                    <span class="w-3 h-3 rounded-full shrink-0" style="background: ${color}"></span>
+                    <span class="text-gray-700 dark:text-gray-200 font-bold">${uf}:</span>
+                    <span class="text-gray-500 dark:text-gray-400">${count} (${percent}%)</span>
+                </div>
+            `;
+        }).join('');
+
+        this.hemicicloContainer.innerHTML = `
+            <div class="flex flex-col items-center w-full gap-6">
+                <div class="w-full flex justify-center">
+                    ${html}
+                </div>
+                <div class="w-full border-t border-gray-100 dark:border-slate-800 pt-4">
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-3 text-center">Bancada por Estado (UF)</p>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        ${legendaHtml}
+                    </div>
+                </div>
+            </div>
+        `;
     }
 }
 

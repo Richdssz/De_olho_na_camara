@@ -12,14 +12,9 @@
     <script src="https://npmcdn.com/parse/dist/parse.min.js"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-    </style>
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
 </head>
 <body class="text-gray-800 antialiased min-h-screen flex flex-col">
     <!-- Header -->
@@ -37,6 +32,14 @@
                 De Olho na Câmara
             </h1>
             <div class="flex items-center gap-4">
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema" title="Alternar tema claro/escuro">
+                  <span class="theme-toggle__track">
+                    <span class="theme-toggle__thumb"></span>
+                  </span>
+                  <span class="theme-toggle__icon theme-toggle__icon--sun">☀️</span>
+                  <span class="theme-toggle__icon theme-toggle__icon--moon">🌙</span>
+                </button>
                 <span id="user-display" class="hidden text-gray-700 font-medium text-sm"></span>
                 <button id="btn-login-modal" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full font-medium text-sm transition-colors">Entrar / Cadastrar</button>
                 <button id="btn-logout" class="hidden text-gray-500 hover:text-red-500 font-medium text-sm transition-colors">Sair</button>
@@ -117,10 +120,10 @@
                         </div>
                         <div class="space-y-5 flex-1">
                             <div>
-                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Espectro Politico</p>
-                                <span id="partido-espectro" class="inline-block px-3 py-1 bg-gray-50 text-gray-700 font-semibold rounded-xl border border-gray-200 text-sm">
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Espectro Político</p>
+                                <p id="partido-espectro" class="text-sm text-gray-700 font-medium bg-gray-50 p-3 rounded-xl border border-gray-200">
                                     Carregando...
-                                </span>
+                                </p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Ideologia</p>
@@ -138,7 +141,7 @@
                     </div>
                 </div>
 
-                <!-- Coluna 2: Financas da Bancada & Grafico de Espectro -->
+                <!-- Coluna 2: Financas da Bancada -->
                 <div class="flex flex-col gap-6">
                     <!-- Finance Panel Card -->
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col">
@@ -167,21 +170,21 @@
                             <canvas id="financeChart"></canvas>
                         </div>
                     </div>
-
-                    <!-- Espectro Ideologico Scatter Plot -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 flex flex-col">
-                        <div class="border-b border-gray-100 pb-4 mb-4">
-                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                <i class="fa-solid fa-compass text-teal-600"></i> Espectro Ideologico do Partido
-                            </h3>
-                            <p class="text-xs text-gray-500 mt-1">Mapeamento da coesao partidaria (Eixo X) e alinhamento com o governo (Eixo Y)</p>
-                        </div>
-                        <div class="relative w-full h-64">
-                            <canvas id="espectroInternoChart"></canvas>
-                        </div>
-                    </div>
                 </div>
 
+            </div>
+
+            <!-- Hemiciclo da Bancada -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+                <div class="border-b border-gray-100 pb-4 mb-5">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fa-solid fa-users-viewfinder text-teal-600"></i> Distribuição Geográfica da Bancada (Hemiciclo)
+                    </h3>
+                    <p class="text-xs text-gray-500 mt-1">Representação visual de cada parlamentar de acordo com a sua UF de eleição</p>
+                </div>
+                <div id="hemiciclo-container" class="relative w-full flex flex-col items-center justify-center min-h-[220px]">
+                    <!-- O SVG do hemiciclo será injetado aqui -->
+                </div>
             </div>
 
             <!-- Members List Section -->

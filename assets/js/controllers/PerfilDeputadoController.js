@@ -73,26 +73,14 @@ class PerfilDeputadoController {
                 dataFim = `${anoCorrente}-12-31`;
             }
             
-            const [despesas, eventosDeputadoResp, proposicoes, votacoesRaw, sessoesPlenario, orgaos, frentes, historico, discursos, beneficiosResp] = await Promise.all([
+            const [despesas, eventosDeputadoResp, proposicoes, sessoesPlenario, orgaos, frentes, historico, beneficiosResp] = await Promise.all([
                 window.camaraApi.buscarDespesas(id, anoCorrente, mesCorrente).catch(() => []),
                 window.DeputadoModel.buscarEventos(id, dataInicio, dataFim).catch(() => ({ success: false, data: [] })),
                 window.camaraApi.buscarProposicoesAutor(id).catch(() => []),
-                window.camaraApi._fetch('/votacoes', {
-                    idOrgao: 114,
-                    ordem: 'DESC',
-                    ordenarPor: 'dataHoraRegistro',
-                    itens: 15,
-                    dataInicio: '2023-01-01',
-                    dataFim: new Date().toISOString().slice(0, 10)
-                }).catch(() => ({ dados: [] })),
                 window.camaraApi.buscarSessoesOrgao(180, dataInicio, dataFim).catch(() => []),
                 window.camaraApi.buscarOrgaosDeputado(id).catch(() => []),
                 window.camaraApi.buscarFrentesDeputado(id).catch(() => []),
                 window.camaraApi.buscarHistoricoDeputado(id).catch(() => []),
-                window.camaraApi.buscarDiscursosDeputado(id, {
-                    dataInicio: dataInicio,
-                    dataFim: dataFim
-                }).catch(() => []),
                 window.DeputadoModel.buscarBeneficios(id, siglaUf).catch(() => ({ success: false, data: null }))
             ]);
 
@@ -104,57 +92,73 @@ class PerfilDeputadoController {
             const analiseGastos = window.analytics.calcularMediaGastos(despesas);
             const totalProposicoes = proposicoes.length;
 
-            // 4. Votos Nominais - buscando ultimas votacoes do Plenario e cruzando votos
+            // 4. Votos Nominais - itera sobre eventos deliberativos e consulta /eventos/{id}/votacoes
             const votosDeputadoMapeados = [];
             const orientacoesMapeadas = {};
 
-            const votacoesPlenario = (votacoesRaw.dados || []).filter(v => v.siglaOrgao === 'PLEN' || v.idOrgao === 114 || v.idOrgao === 180).slice(0, 15);
+            const eventosDeliberativos = (eventosDeputado || []).filter(e => {
+                const descTipo = (e.descricaoTipo || '').toLowerCase();
+                return descTipo.includes('deliberativa');
+            });
 
-            await Promise.all((votacoesPlenario || []).map(async (v) => {
+            for (const evento of eventosDeliberativos) {
                 try {
-                    const [votosList, orientacoesList, detalheVot] = await Promise.all([
-                        window.camaraApi.buscarVotosVotacao(v.id).catch(() => []),
-                        window.camaraApi.buscarOrientacoesVotacao(v.id).catch(() => []),
-                        window.camaraApi._fetch(`/votacoes/${v.id}`).catch(() => null)
-                    ]);
+                    const votacoesEventoResp = await window.camaraApi.buscarVotacoesEvento(evento.id);
 
-                    const votoDoDeputado = (votosList || []).find(vote => {
-                        const dep = vote.deputado || vote.deputado_;
-                        return dep && dep.id === id;
-                    });
-                    const tipoVoto = votoDoDeputado ? votoDoDeputado.tipoVoto : "Ausente";
+                    // 404 = evento sem votacoes, ignora silenciosamente
+                    if (!votacoesEventoResp.success) continue;
 
-                    let proposicaoId = null;
-                    if (detalheVot && detalheVot.dados) {
-                        const propAfetadas = detalheVot.dados.proposicoesAfetadas || [];
-                        if (propAfetadas.length > 0) {
-                            proposicaoId = propAfetadas[0].id;
-                        } else if (detalheVot.dados.ultimaApresentacaoProposicao?.uriProposicaoCitada) {
-                            const match = detalheVot.dados.ultimaApresentacaoProposicao.uriProposicaoCitada.match(/\/proposicoes\/(\d+)/);
+                    const votacoesDoEvento = votacoesEventoResp.dados || [];
+
+                    for (const votacao of votacoesDoEvento) {
+                        // Extrai ID da proposicao a partir da uriProposicaoObjeto
+                        let proposicaoId = null;
+                        if (votacao.uriProposicaoObjeto) {
+                            const match = votacao.uriProposicaoObjeto.match(/\/proposicoes\/(\d+)/);
                             if (match) proposicaoId = parseInt(match[1]);
                         }
+
+                        try {
+                            const [votosList, orientacoesList] = await Promise.all([
+                                window.camaraApi.buscarVotosVotacao(votacao.id).catch(() => []),
+                                window.camaraApi.buscarOrientacoesVotacao(votacao.id).catch(() => [])
+                            ]);
+
+                            const votoDoDeputado = (votosList || []).find(vote => {
+                                const dep = vote.deputado || vote.deputado_;
+                                return dep && dep.id === id;
+                            });
+                            const tipoVoto = votoDoDeputado ? votoDoDeputado.tipoVoto : "Ausente";
+
+                            votosDeputadoMapeados.push({
+                                votacaoId: votacao.id,
+                                descricao: votacao.proposicaoObjeto || votacao.descricao || "Votacao em Plenario",
+                                data: votacao.dataHoraRegistro || votacao.data,
+                                voto: tipoVoto,
+                                proposicaoId: proposicaoId
+                            });
+
+                            orientacoesMapeadas[votacao.id] = orientacoesList || [];
+                        } catch (err) {
+                            console.error('Erro buscando votos/orientacoes da votacao ' + votacao.id + ':', err);
+                        }
                     }
-
-                    votosDeputadoMapeados.push({
-                        votacaoId: v.id,
-                        descricao: v.descricao || "Votacao em Plenario",
-                        data: v.dataHoraRegistro || v.data,
-                        voto: tipoVoto,
-                        proposicaoId: proposicaoId
-                    });
-
-                    orientacoesMapeadas[v.id] = orientacoesList || [];
                 } catch (err) {
-                    console.error('Erro buscando votos/orientacoes da votacao ' + v.id + ':', err);
+                    console.warn(`[Perfil] Erro ao processar evento ${evento.id}:`, err.message);
                 }
-            }));
+            }
+
+            // Ordena por data decrescente
+            votosDeputadoMapeados.sort((a, b) => new Date(b.data) - new Date(a.data));
 
             const analiseCoesao = window.analytics.calcularCoesaoPartidaria(votosDeputadoMapeados, orientacoesMapeadas, siglaPartido);
             
             const analiseAnomalias = window.analytics.detectarAnomalias({
                 presencaRate: analisePresenca.rate,
                 gastoMedioMensal: analiseGastos.media,
-                coesaoRate: analiseCoesao.coesao
+                coesaoRate: analiseCoesao.coesao,
+                totalVotacoesComOrientacao: analiseCoesao.totalComOrientacao || 0,
+                presencaSemDados: analisePresenca.semDados || false
             });
 
             const badges = window.analytics.avaliarBadges({
@@ -198,7 +202,6 @@ class PerfilDeputadoController {
             this.view.renderizarGraficos(despesas, eventosDeputado, sessoesPlenario);
             this.view.renderizarBeneficios(beneficiosResp.success ? beneficiosResp.data : null);
             this.view.renderizarBeneficiosRH(orgaos, frentes, historico);
-            this.view.renderizarDiscursos(discursos);
 
             // 5.1 Atualizar Links de Transparencia
             const urlCamara = `https://www.camara.leg.br/deputados/${id}`;
@@ -499,8 +502,11 @@ class PerfilDeputadoController {
                 const detalheVot = await window.camaraApi._fetch(`/votacoes/${votacaoId}`).catch(() => null);
                 if (detalheVot && detalheVot.dados) {
                     const propAfetadas = detalheVot.dados.proposicoesAfetadas || [];
+                    const objetosPossiveis = detalheVot.dados.objetosPossiveis || [];
                     if (propAfetadas.length > 0) {
                         realPropId = propAfetadas[0].id;
+                    } else if (objetosPossiveis.length > 0) {
+                        realPropId = objetosPossiveis[0].id;
                     } else if (detalheVot.dados.ultimaApresentacaoProposicao?.uriProposicaoCitada) {
                         const match = detalheVot.dados.ultimaApresentacaoProposicao.uriProposicaoCitada.match(/\/proposicoes\/(\d+)/);
                         if (match) realPropId = parseInt(match[1]);

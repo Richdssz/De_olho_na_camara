@@ -104,11 +104,17 @@ class AnalyticsService {
 
         votosDeputado.forEach(v => {
             const orientacoes = orientacoesVotacoes[v.votacaoId] || [];
-            
-            // Busca orientação exata do partido
-            const orientacaoPartido = orientacoes.find(o => 
-                o.siglaPartidoBloco && o.siglaPartidoBloco.toUpperCase() === siglaPartido.toUpperCase()
+
+            // Busca orientacao: primeiro por sigla exata, depois por federacao que contem a sigla
+            const siglaUpper = siglaPartido.toUpperCase();
+            let orientacaoPartido = orientacoes.find(o =>
+                o.siglaPartidoBloco && o.siglaPartidoBloco.toUpperCase() === siglaUpper
             );
+            if (!orientacaoPartido) {
+                orientacaoPartido = orientacoes.find(o =>
+                    o.siglaPartidoBloco && o.siglaPartidoBloco.toUpperCase().includes(siglaUpper)
+                );
+            }
 
             const orientacaoVoto = orientacaoPartido ? orientacaoPartido.orientacaoVoto : null;
 
@@ -173,11 +179,13 @@ class AnalyticsService {
         const presenca = kpis.presencaRate || 0;
         const gastoMedio = kpis.gastoMedioMensal || 0;
         const coesao = kpis.coesaoRate || 0;
+        const totalVotacoesComOrientacao = kpis.totalVotacoesComOrientacao || 0;
+        const presencaSemDados = kpis.presencaSemDados || false;
 
         const MEDIA_NACIONAL_GASTO = 35000;
 
         // 1. Composta: alto gasto e baixa presença
-        if (gastoMedio > MEDIA_NACIONAL_GASTO * 1.5 && presenca < 70) {
+        if (!presencaSemDados && gastoMedio > MEDIA_NACIONAL_GASTO * 1.5 && presenca < 70) {
             anomalias.push({
                 categoria: 'alto_gasto_baixa_presenca',
                 titulo: 'Alto Gasto + Baixa Presença',
@@ -196,8 +204,8 @@ class AnalyticsService {
             });
         }
 
-        // 3. Ausência crítica
-        if (presenca < 65) {
+        // 3. Ausência crítica (apenas se ha dados reais de presenca)
+        if (!presencaSemDados && presenca < 65) {
             anomalias.push({
                 categoria: 'ausencia_critica',
                 titulo: 'Ausência Crítica',
@@ -206,8 +214,8 @@ class AnalyticsService {
             });
         }
 
-        // 4. Coesão baixa (rebeldia/independência extrema)
-        if (coesao < 70) {
+        // 4. Coesão baixa (apenas se existem votacoes com orientacao)
+        if (totalVotacoesComOrientacao > 0 && coesao < 70) {
             anomalias.push({
                 categoria: 'coesao_baixa',
                 titulo: 'Baixa Coesão Partidária',

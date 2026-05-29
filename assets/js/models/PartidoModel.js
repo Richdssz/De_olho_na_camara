@@ -117,6 +117,20 @@ class PartidoModel {
     }
 
     /**
+     * Limpa marcações wiki de um texto.
+     */
+    static limparTextoWiki(texto) {
+        if (!texto) return 'Não informado';
+        return texto
+            .replace(/\{\{[^}]+\}\}/g, '')           // remove {{templates}}
+            .replace(/\[\[([^|\]]+\|)?([^\]]+)\]\]/g, '$2') // [[link|texto]] → texto
+            .replace(/'{2,3}/g, '')                   // remove '' e '''
+            .replace(/\s+/g, ' ')
+            .trim()
+            || 'Não informado';
+    }
+
+    /**
      * Busca dados historicos, ideologia e espectro politico de um partido na Wikipedia.
      * @param {string} sigla 
      * @param {string} nomeCompleto 
@@ -129,7 +143,7 @@ class PartidoModel {
             return this._formatResponse(true, cached, 'cache');
         }
 
-        const fallback = FALLBACK_IDEOLOGIAS[sigla.toUpperCase()] || { ideologia: 'Nao documentada', espectro: 'Nao documentado' };
+        const fallback = FALLBACK_IDEOLOGIAS[sigla.toUpperCase()] || { ideologia: 'Sem ideologia oficial', espectro: 'Sem espectro político definido' };
 
         try {
             console.log(`[PartidoModel] Buscando dados na Wikipedia para o partido ${sigla}...`);
@@ -158,15 +172,14 @@ class PartidoModel {
             const extract = pageData.extract || "";
 
             // Limpeza de colchetes e referências no resumo
-            const cleanExtract = extract
-                .replace(/\[\d+\]/g, "")
-                .replace(/[\[\]]/g, "")
-                .trim();
+            const cleanExtract = this.limparTextoWiki(extract.replace(/\[\d+\]/g, "").replace(/[\[\]]/g, ""));
+            const cleanIdeologia = this.limparTextoWiki(fallback.ideologia);
+            const cleanEspectro = this.limparTextoWiki(fallback.espectro);
 
             const result = {
-                resumo: cleanExtract || "Resumo historico indisponivel na Wikipedia.",
-                ideologia: fallback.ideologia,
-                espectro: fallback.espectro,
+                resumo: cleanExtract === 'Não informado' ? "Resumo historico indisponivel na Wikipedia." : cleanExtract,
+                ideologia: cleanIdeologia,
+                espectro: cleanEspectro,
                 logoUrl: pageData.original?.source || null,
                 font: `https://pt.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`
             };
@@ -180,8 +193,8 @@ class PartidoModel {
             console.warn(`[PartidoModel] Wikipedia falhou para ${sigla}, usando fallback:`, error);
             const result = {
                 resumo: `Informacoes historicas do partido ${sigla} (${nomeCompleto}). (Dados carregados localmente devido a falha de conexao com a Wikipedia).`,
-                ideologia: fallback.ideologia,
-                espectro: fallback.espectro,
+                ideologia: this.limparTextoWiki(fallback.ideologia),
+                espectro: this.limparTextoWiki(fallback.espectro),
                 font: `https://pt.wikipedia.org/wiki/${encodeURIComponent(nomeCompleto)}`
             };
             return this._formatResponse(true, result, 'fallback');
@@ -189,8 +202,106 @@ class PartidoModel {
     }
 
     /**
-     * Calcula as despesas totais de todos os deputados da bancada para um ano.
-     * @param {Array} membros - Lista de deputados da bancada.
+     * Busca o logo do partido no Back4App (classe PartidoAsset).
+     * Se a base estiver vazia, auto-popula a base uma vez no Back4App.
+     */
+    static async buscarLogo(sigla) {
+        if (!sigla) return null;
+        const siglaUpper = sigla.toUpperCase().trim();
+
+        // Tentar ler do Cache local primeiro
+        const cacheKey = `partido_logo_b4a_${siglaUpper}`;
+        const cached = window.CacheService ? window.CacheService.getLocal(cacheKey) : null;
+        if (cached) return cached;
+
+        try {
+            const query = new Parse.Query('PartidoAsset');
+            query.equalTo('sigla', siglaUpper);
+            let resultado = await query.first();
+
+            // Auto-popular se a base de dados estiver vazia
+            if (!resultado) {
+                const countQuery = new Parse.Query('PartidoAsset');
+                const total = await countQuery.count().catch(() => 0);
+                if (total === 0) {
+                    console.log("[PartidoModel] Classe PartidoAsset está vazia no Back4App. Auto-populando...");
+                    await this.inicializarPartidoAssetsNoBack4App();
+                    resultado = await query.first().catch(() => null);
+                }
+            }
+
+            if (resultado && resultado.get('logoUrl')) {
+                const logoUrl = resultado.get('logoUrl');
+                if (window.CacheService) {
+                    window.CacheService.setLocal(cacheKey, logoUrl, 1440); // 24h
+                }
+                return logoUrl;
+            }
+        } catch (e) {
+            console.warn("[PartidoModel] Erro ao consultar PartidoAsset no Back4App:", e);
+        }
+        return null;
+    }
+
+    /**
+     * Inicializa a tabela PartidoAsset com os partidos padrão e suas cores hexadecimais.
+     */
+    static async inicializarPartidoAssetsNoBack4App() {
+        try {
+            const PartidoAsset = Parse.Object.extend('PartidoAsset');
+            const partidos = [
+                { sigla: 'PT',           nomeCompleto: 'Partido dos Trabalhadores',               corHex: '#ED1C24' },
+                { sigla: 'PL',           nomeCompleto: 'Partido Liberal',                         corHex: '#003087' },
+                { sigla: 'PP',           nomeCompleto: 'Progressistas',                           corHex: '#1E7C45' },
+                { sigla: 'MDB',          nomeCompleto: 'Movimento Democrático Brasileiro',        corHex: '#003F87' },
+                { sigla: 'UNIÃO',        nomeCompleto: 'União Brasil',                            corHex: '#006847' },
+                { sigla: 'UNIAO',        nomeCompleto: 'União Brasil',                            corHex: '#006847' },
+                { sigla: 'PSD',          nomeCompleto: 'Partido Social Democrático',              corHex: '#00A859' },
+                { sigla: 'REPUBLICANOS', nomeCompleto: 'Republicanos',                            corHex: '#0047BA' },
+                { sigla: 'PDT',          nomeCompleto: 'Partido Democrático Trabalhista',         corHex: '#ED1C24' },
+                { sigla: 'PSDB',         nomeCompleto: 'Partido da Social Democracia Brasileira', corHex: '#0080C9' },
+                { sigla: 'NOVO',         nomeCompleto: 'Partido Novo',                            corHex: '#F7941D' },
+                { sigla: 'PSOL',         nomeCompleto: 'Partido Socialismo e Liberdade',          corHex: '#FEE800' },
+                { sigla: 'PODE',         nomeCompleto: 'Podemos',                                 corHex: '#29ABE2' },
+                { sigla: 'PCdoB',        nomeCompleto: 'Partido Comunista do Brasil',             corHex: '#D2232A' },
+                { sigla: 'PCDOB',        nomeCompleto: 'Partido Comunista do Brasil',             corHex: '#D2232A' },
+                { sigla: 'PSB',          nomeCompleto: 'Partido Socialista Brasileiro',           corHex: '#F7941D' },
+                { sigla: 'AVANTE',       nomeCompleto: 'Avante',                                  corHex: '#F7941D' },
+                { sigla: 'SOLIDARIEDADE',nomeCompleto: 'Solidariedade',                           corHex: '#E87722' },
+                { sigla: 'CIDADANIA',    nomeCompleto: 'Cidadania',                               corHex: '#009846' },
+                { sigla: 'PRD',          nomeCompleto: 'Partido Renovação Democrática',           corHex: '#003087' },
+                { sigla: 'PV',           nomeCompleto: 'Partido Verde',                           corHex: '#008000' },
+                { sigla: 'REDE',         nomeCompleto: 'Rede Sustentabilidade',                   corHex: '#008080' },
+                { sigla: 'DC',           nomeCompleto: 'Democracia Cristã',                       corHex: '#003087' },
+                { sigla: 'MISSÃO',       nomeCompleto: 'Partido Missão',                          corHex: '#7f8c8d' },
+                { sigla: 'MISSAO',       nomeCompleto: 'Partido Missão',                          corHex: '#7f8c8d' }
+            ];
+
+            const acl = new Parse.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true); // Permitir escrita inicial se criada pela primeira vez de forma anônima
+
+            const promessas = partidos.map(p => {
+                const obj = new PartidoAsset();
+                obj.set('sigla', p.sigla);
+                obj.set('nomeCompleto', p.nomeCompleto);
+                obj.set('corHex', p.corHex);
+                obj.set('logoUrl', null);
+                obj.set('ativo', true);
+                obj.setACL(acl);
+                return obj.save();
+            });
+
+            await Promise.all(promessas);
+            console.log("[PartidoModel] PartidoAsset inicializado com sucesso no Back4App.");
+        } catch (e) {
+            console.error("[PartidoModel] Falha ao auto-popular PartidoAsset no Back4App:", e);
+        }
+    }
+
+    /**
+     * Calculates combined expenses for all active deputies of the party for a given year.
+     * @param {Array} membros - List of party members.
      * @param {number} ano 
      */
     static async calcularDespesasBancada(membros, ano) {
@@ -249,29 +360,43 @@ class PartidoModel {
             return this._formatResponse(false, { total: 0, porTipo: {}, porMes: {}, mediaPorDeputado: 0 }, 'api', error.message);
         }
     }
+
+    /**
+     * Retorna os dados de fallback de um partido (ideologia, espectro, corHex).
+     */
+    static getFallbackData(sigla) {
+        if (!sigla) return null;
+        return FALLBACK_IDEOLOGIAS[sigla.toUpperCase().trim()] || null;
+    }
 }
 
 const FALLBACK_IDEOLOGIAS = {
-    'PT': { ideologia: 'Socialismo democratico, Social-democracia', espectro: 'Esquerda a Centro-esquerda' },
-    'PL': { ideologia: 'Conservadorismo, Liberalismo economico', espectro: 'Direita' },
-    'MDB': { ideologia: 'Centrismo, Catch-all', espectro: 'Centro' },
-    'PSD': { ideologia: 'Centrismo, Liberalismo social', espectro: 'Centro' },
-    'UNIAO': { ideologia: 'Conservadorismo liberal, Liberalismo', espectro: 'Centro-direita a Direita' },
-    'PP': { ideologia: 'Conservadorismo, Direita crista', espectro: 'Direita' },
-    'REPUBLICANOS': { ideologia: 'Conservadorismo social, Democracia crista', espectro: 'Direita' },
-    'PODE': { ideologia: 'Democracia crista, Populismo', espectro: 'Centro a Centro-direita' },
-    'PDT': { ideologia: 'Trabalhismo, Social-democracia', espectro: 'Centro-esquerda' },
-    'PSB': { ideologia: 'Social-democracia, Socialismo criativo', espectro: 'Centro-esquerda a Esquerda' },
-    'PSOL': { ideologia: 'Socialismo democratico, Anticapitalismo', espectro: 'Esquerda a Extrema-esquerda' },
-    'AVANTE': { ideologia: 'Centrismo, Populismo', espectro: 'Centro' },
-    'SOLIDARIEDADE': { ideologia: 'Sindicalismo, Social-democracia', espectro: 'Centro a Centro-esquerda' },
-    'PATRIOTA': { ideologia: 'Conservadorismo, Nacionalismo', espectro: 'Direita' },
-    'NOVO': { ideologia: 'Liberalismo classico, Libertarianismo', espectro: 'Direita' },
-    'PCdoB': { ideologia: 'Comunismo, Marxismo-leninismo', espectro: 'Esquerda' },
-    'CIDADANIA': { ideologia: 'Social-democracia, Terceira via', espectro: 'Centro a Centro-esquerda' },
-    'PV': { ideologia: 'Ambientalismo, Verde', espectro: 'Centro-esquerda' },
-    'REDE': { ideologia: 'Sustentabilidade, Social-democracia', espectro: 'Centro-esquerda' },
-    'PSDB': { ideologia: 'Social-democracia, Centrismo', espectro: 'Centro a Centro-esquerda' }
+    'PT': { ideologia: 'Socialismo democrático, Social-democracia', espectro: 'Esquerda a Centro-esquerda', corHex: '#ED1C24' },
+    'PL': { ideologia: 'Conservadorismo, Liberalismo econômico', espectro: 'Direita', corHex: '#003087' },
+    'MDB': { ideologia: 'Centrismo, Catch-all', espectro: 'Centro', corHex: '#003F87' },
+    'PSD': { ideologia: 'Centrismo, Liberalismo social', espectro: 'Centro', corHex: '#00A859' },
+    'UNIAO': { ideologia: 'Conservadorismo liberal, Liberalismo', espectro: 'Centro-direita a Direita', corHex: '#006847' },
+    'UNIÃO': { ideologia: 'Conservadorismo liberal, Liberalismo', espectro: 'Centro-direita a Direita', corHex: '#006847' },
+    'PP': { ideologia: 'Conservadorismo, Direita cristã', espectro: 'Direita', corHex: '#1E7C45' },
+    'REPUBLICANOS': { ideologia: 'Conservadorismo social, Democracia cristã', espectro: 'Direita', corHex: '#0047BA' },
+    'PODE': { ideologia: 'Democracia cristã, Populismo', espectro: 'Centro a Centro-direita', corHex: '#29ABE2' },
+    'PDT': { ideologia: 'Trabalhismo, Social-democracia', espectro: 'Centro-esquerda', corHex: '#ED1C24' },
+    'PSB': { ideologia: 'Social-democracia, Socialismo criativo', espectro: 'Centro-esquerda a Esquerda', corHex: '#F7941D' },
+    'PSOL': { ideologia: 'Socialismo democrático, Anticapitalismo', espectro: 'Esquerda a Extrema-esquerda', corHex: '#FEE800' },
+    'AVANTE': { ideologia: 'Centrismo, Populismo', espectro: 'Centro', corHex: '#F7941D' },
+    'SOLIDARIEDADE': { ideologia: 'Sindicalismo, Social-democracia', espectro: 'Centro a Centro-esquerda', corHex: '#E87722' },
+    'PATRIOTA': { ideologia: 'Conservadorismo, Nacionalismo', espectro: 'Direita', corHex: '#7f8c8d' },
+    'NOVO': { ideologia: 'Liberalismo clássico, Libertarianismo', espectro: 'Direita', corHex: '#F7941D' },
+    'PCdoB': { ideologia: 'Comunismo, Marxismo-leninismo', espectro: 'Esquerda', corHex: '#D2232A' },
+    'PCDOB': { ideologia: 'Comunismo, Marxismo-leninismo', espectro: 'Esquerda', corHex: '#D2232A' },
+    'CIDADANIA': { ideologia: 'Social-democracia, Terceira via', espectro: 'Centro a Centro-esquerda', corHex: '#009846' },
+    'PV': { ideologia: 'Ambientalismo, Verde', espectro: 'Centro-esquerda', corHex: '#008000' },
+    'REDE': { ideologia: 'Sustentabilidade, Social-democracia', espectro: 'Centro-esquerda', corHex: '#008080' },
+    'PSDB': { ideologia: 'Social-democracia, Centrismo', espectro: 'Centro a Centro-esquerda', corHex: '#0080C9' },
+    'PRD': { ideologia: 'Centrismo, Populismo', espectro: 'Centro', corHex: '#003087' },
+    'DC': { ideologia: 'Democracia Cristã', espectro: 'Centro', corHex: '#003087' },
+    'MISSÃO': { ideologia: 'Sem ideologia oficial', espectro: 'Sem espectro definido', corHex: '#7f8c8d' },
+    'MISSAO': { ideologia: 'Sem ideologia oficial', espectro: 'Sem espectro definido', corHex: '#7f8c8d' }
 };
 
 window.PartidoModel = PartidoModel;

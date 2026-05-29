@@ -144,13 +144,17 @@ class PartidosView {
                 }
             }
 
+            const logoHtml = p.urlLogo 
+                ? `<img src="${p.urlLogo}" alt="Logo do ${p.sigla}" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.outerHTML='<div class=\\'w-full h-full flex items-center justify-center font-bold text-sm text-white\\' style=\\'background: ${p.corHex || '#7f8c8d'}\\'>${p.sigla}</div>';">`
+                : `<div class="w-full h-full flex items-center justify-center font-bold text-sm text-white" style="background: ${p.corHex || '#7f8c8d'}">${p.sigla}</div>`;
+
             const card = document.createElement('div');
             card.className = 'bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative group';
             card.innerHTML = `
                 <div>
                     <div class="flex justify-between items-start mb-4">
                         <div class="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center border border-gray-150 bg-white shrink-0">
-                            <img src="${p.urlLogo || ''}" alt="Logo do ${p.sigla}" class="w-full h-full object-contain p-1" onerror="this.onerror=null; this.outerHTML='<div class=\\'w-full h-full bg-teal-50 flex items-center justify-center text-teal-700 font-bold text-xs border border-teal-100\\'>${p.sigla}</div>';">
+                            ${logoHtml}
                         </div>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border ${coesaoBadgeClass}">
                             ${coesaoTexto}
